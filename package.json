@@ -1,6 +1,6 @@
 {
   "name": "atlas-owner",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Product Owner graph memory for any project. Modular auto-sharded JSON graph + CLI (init/record/query/get/check) + opencode enforce plugin. Scales to 10k nodes, zero dependencies.",
   "license": "MIT",
   "type": "module",
