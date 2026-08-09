@@ -532,6 +532,8 @@ async function scan(dir, opts) {
 
   const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'coverage', '.next', '.cache', '.bun', '.venv', 'venv', '.yarn'])
   const SKIP_FILES = new Set(['package-lock.json', 'yarn.lock', 'bun.lockb', '.DS_Store'])
+  // Secrets / env never become graph nodes.
+  const SKIP_NAMES_RE = /(^\.env|[-_.]env[-_.]|token|secret|\.pem$|\.key$|credentials|telemetry-|\.env\.)/
   const hits = []
 
   async function walk(p, d) {
@@ -542,6 +544,7 @@ async function scan(dir, opts) {
     for (const e of entries) {
       const rel = relative(root, join(p, e.name))
       if (rel === 'atlas') continue
+      if (SKIP_NAMES_RE.test(e.name)) continue
       if (e.isDirectory()) {
         if (SKIP_DIRS.has(e.name)) continue
         hits.push({ rel, type: 'feature', status: 'active', tags: ['scan'] })
