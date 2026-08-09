@@ -159,13 +159,16 @@ atlas check /path/to/project
 | Command | What it does |
 |---|---|
 | `init` | scaffold `atlas/` (manifest, shards, indexes, PROTOCOL) |
+| `ingest` | read AGENTS.md/CLAUDE.md → knowledge nodes (rules→`NEG`, env→`DEC`) |
 | `record` | add a node (`--id` optional, auto `{PREFIX}-{NNN}`) |
 | `query` | search by keywords + `--tags` + `--limit` (default 5, max 20) |
 | `get ID` | show one node (plus `nodes/{ID}.md` if present) |
 | `update ID` | change `--status` / `--summary` / `--tags` |
-| `recent` | newest nodes (`--limit`, default 10) |
+| `delete ID` | remove a node (`--force` strips incoming edges too) |
+| `recent` | newest nodes by timestamp (`--limit`, default 10) |
 | `stat` | one-line counts by type/status |
 | `scan` | code-walk the repo → feature/task nodes (`--target`, `--depth`; idempotent) |
+| `export` | dump full graph as JSON (backup / portability) |
 | `rebuild` | rebuild `id_map.json` + `tags_index.json` (fix drift) |
 | `check` | integrity + limits gate |
 

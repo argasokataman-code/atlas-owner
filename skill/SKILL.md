@@ -119,16 +119,18 @@ Tuning: `ATLAS_MAX_SHARD=500` overrides the shard size.
 
 ### Before work
 1. Does `atlas/` exist? No → `atlas init` (or plugin scaffolds it automatically).
-2. `atlas query "<topic from the task>"` → read relevant nodes.
-3. New/large project, no map yet? `atlas scan` to map repo structure (code-walk, not guesswork). Then `atlas query` the relevant paths.
-4. Any flow or insight unclear (business OR technical)? Ask the user before recording a node. Never guess a fact.
-5. Follow `conn` only if needed.
+2. Project has `AGENTS.md`/`CLAUDE.md`? Run `atlas ingest` once — it turns rules/bans/env into knowledge nodes (`NEG`/`DEC`) so existing docs are searchable without re-reading.
+3. New/large project, no map yet? `atlas scan` to map repo structure (code-walk, not guesswork). Markdown docs get their heading into the node summary. Then `atlas query` the relevant paths.
+4. `atlas query "<topic from the task>"` → read relevant nodes.
+5. Any flow or insight unclear (business OR technical)? Ask the user before recording a node. Never guess a fact.
+6. Follow `conn` only if needed.
 
 ### After significant work
-Record a node in the SAME change that did the work:
+Record a node in the SAME change that did the work (min 1 node per significant work):
 1. `atlas record --type <type> --status <status> --tags a,b --summary "≤140 chars" --conn "ID:type,..."`.
 2. Add `--file nodes/{ID}.md` when detail exceeds the summary (≤ 200 lines). A summary longer than 140 chars is auto-truncated and the full text stored in `nodes/{ID}.md` — nothing is lost.
-3. CLI keeps shards, tags_index, and auto-ID in sync. `atlas check` verifies.
+3. Decision/architecture → `decision`. Bug found → `bug`. Business changed → archive old `BUS-` + record new with `--conn "old:led_to"`.
+4. CLI keeps shards, tags_index, and auto-ID in sync. `atlas check` verifies.
 
 ### PO behavior
 - Before proposing a feature or change: `atlas query` the topic. Do not re-propose what a `NEG-` or `DEC-` node already settled.

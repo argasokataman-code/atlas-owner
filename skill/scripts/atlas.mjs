@@ -65,6 +65,13 @@ node <atlas> scan [--depth 2]       # map struktur repo (code-walk, idempotent)
 node <atlas> record --id TASK-003 --type task --status done --tags a,b --summary "max 140 char" --conn "BUG-001:fixes,DEC-002:led_to"
 node <atlas> record --id REQ-001 --type requirement --status active --tags core --summary "..." --conn "FEAT-001:relates" --file nodes/REQ-001.md
 
+## Auto-record minimal — WAJIB setelah kerja signifikan
+Selesai implement/analisa/fix? Record MINIMAL 1 node di command yang sama.
+Kerja besar (banyak file)? Pecah jadi beberapa node per fitur/keputusan.
+Keputusan arsitektur/kerangka -> type decision. Ketemu bug -> bug.
+Bisnis berubah -> business + archive yang lama (led_to chain).
+Ragu antara 2 tipe -> tanya user, jangan nebak.
+
 ## Bisnis — Atlas paham produknya juga. Track perubahan bisnis.
 node <atlas> record --id BUS-001 --type business --status active --tags biz,model --summary "keadaan bisnis sekarang" --conn "DEC-002:relates"
 # bisnis berubah? archive yang lama, record yang baru (chain led_to = timeline)
@@ -112,16 +119,19 @@ const README = `# Atlas — Product Owner Graph Memory
 `
 
 const usage = () => `Usage:
-  atlas setup|init|record|query|get|update|recent|stat|scan|rebuild|check [dir]
+  atlas setup|init|ingest|record|query|get|update|delete|recent|stat|scan|export|rebuild|check [dir]
 
 Commands:
   setup       auto-install MCP + plugin ke opencode config (global)
   init        scaffold atlas/
+  ingest      read AGENTS.md/docs -> knowledge nodes (rules, env, bans)
   record      add node (--id --type --status --tags --summary --conn [--file])
   query       search ("keywords" [--tags a,b] [--limit N])
   get ID      show node
   update ID   change node (--status/--summary/--tags)
+  delete ID   remove node (--force for nodes referenced by others)
   recent      newest nodes (--limit N, default 10)
+  export      dump full graph as JSON (stdout or --file path)
   stat        one-line counts by type/status
   scan        map repo structure (--target path, --depth N; code-walk, idempotent)
   rebuild     rebuild id_map.json + tags_index.json (fixes drift)
@@ -133,6 +143,12 @@ function today() {
   const d = new Date()
   const p = (n) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
+function nowTime() {
+  const d = new Date()
+  const p = (n) => String(n).padStart(2, '0')
+  return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
 }
 
 function tryParseJson(text) {
@@ -386,7 +402,7 @@ async function record(dir, opts) {
       seen.add(key)
     }
 
-    const node = { id, type: opts.type, status: opts.status, date: today(), tags, summary: overflow ? summary.slice(0, LIMITS.MAX_SUMMARY_CHARS) : summary, conn }
+    const node = { id, type: opts.type, status: opts.status, date: today(), time: nowTime(), tags, summary: overflow ? summary.slice(0, LIMITS.MAX_SUMMARY_CHARS) : summary, conn }
     const shardNum = man.active_shard
     const shard = await loadShard(dir, shardNum)
     if (shard.corrupt) { fail(`FAIL: active shard corrupt: ${shard.corrupt}. Run: atlas check`); return }
@@ -525,7 +541,7 @@ async function get(dir, opts) {
   console.log(`id:      ${n.id}`)
   console.log(`type:    ${n.type}`)
   console.log(`status:  ${n.status}`)
-  console.log(`date:    ${n.date}`)
+  console.log(`date:    ${n.date}${n.time ? ' ' + n.time : ''}`)
   console.log(`tags:    ${(n.tags || []).join(', ')}`)
   console.log(`summary: ${n.summary}`)
   console.log(`conn:    ${(n.conn || []).map((c) => `${c.id}:${c.type}`).join(', ')}`)
@@ -540,15 +556,10 @@ async function recent(dir, opts) {
   const manifest = await loadManifest(dir)
   if (!manifest) { fail('FAIL: atlas/ not initialized. Run: atlas init'); return }
   const limit = Math.max(1, clampLimit(opts.limit, 10, 50))
-  const newest = []
-  for (let n = manifest.active_shard; n >= 0 && newest.length < limit; n--) {
-    const s = await loadShard(dir, n)
-    if (s.corrupt) { console.error(`WARN: skipping corrupt ${s.corrupt}`); continue }
-    for (const node of [...s.nodes].reverse()) {
-      if (newest.length >= limit) break
-      newest.push(node)
-    }
-  }
+  const { nodes, corrupt } = await allNodes(dir, manifest)
+  if (corrupt.length) console.error(`WARN: skipping corrupt shard file(s): ${corrupt.join(', ')}. Run: atlas check`)
+  const stamp = (n) => `${n.date || ''} ${n.time || ''}`
+  const newest = [...nodes].sort((a, b) => stamp(b).localeCompare(stamp(a))).slice(0, limit)
   if (!newest.length) { console.log('(no nodes)'); return }
   for (const n of newest) printNode(dir, n)
   console.log(`(${newest.length}/${manifest.node_count} nodes)`)
@@ -594,9 +605,11 @@ async function scan(dir, opts) {
   const manifest = await loadManifest(dir)
   if (!manifest) { fail('FAIL: atlas/ not initialized. Run: atlas init'); return }
   const root = resolve(dirname(dir))
+  const rootReal = existsSync(root) ? realpathSync(root) : root
   const depth = Math.max(1, parseInt(opts.depth, 10) || 1)
   const targetArg = opts.target ? resolve(root, opts.target) : root
-  if (targetArg !== root && !targetArg.startsWith(root + sep)) { fail(`FAIL: --target outside project: ${opts.target}`); return }
+  const targetReal = existsSync(targetArg) ? realpathSync(targetArg) : targetArg
+  if (targetReal !== rootReal && !targetReal.startsWith(rootReal + sep)) { fail(`FAIL: --target outside project: ${opts.target}`); return }
 
   const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'coverage', '.next', '.cache', '.bun', '.venv', 'venv', '.yarn'])
   const SKIP_FILES = new Set(['package-lock.json', 'yarn.lock', 'bun.lockb', '.DS_Store'])
@@ -612,6 +625,7 @@ async function scan(dir, opts) {
     for (const e of entries) {
       const rel = relative(root, join(p, e.name))
       if (rel === 'atlas') continue
+      if (e.isSymbolicLink()) continue
       if (SKIP_NAMES_RE.test(e.name)) continue
       if (e.isDirectory()) {
         if (SKIP_DIRS.has(e.name)) continue
@@ -620,12 +634,17 @@ async function scan(dir, opts) {
       } else if (!SKIP_FILES.has(e.name)) {
         const isMd = e.name.endsWith('.md')
         // Docs already carry a title: read the first heading so the node is
-        // searchable by meaning (e.g. "PRD"), not just by path.
+        // searchable by meaning (e.g. "PRD"), not just by path. Skip huge
+        // files (guarded by stat) so a multi-MB dump can't eat the scan.
         let desc = rel
         if (isMd) {
           try {
-            const head = (await readFile(join(p, e.name), 'utf8')).split('\n').find((l) => /^#\s/.test(l))
-            if (head) desc = `${rel} — ${head.replace(/^#\s*/, '').trim()}`
+            const st = await statFile(join(p, e.name))
+            if (st.size > 1 * 1024 * 1024) { desc = `${rel} — (large file, unread)` }
+            else {
+              const head = (await readFile(join(p, e.name), 'utf8')).split('\n').find((l) => /^#\s/.test(l))
+              if (head) desc = `${rel} — ${head.replace(/^#\s*/, '').trim()}`
+            }
           } catch { /* unreadable, keep path */ }
         }
         hits.push({ rel, type: isMd ? 'feature' : 'task', status: 'active', tags: ['scan'], desc })
@@ -636,11 +655,22 @@ async function scan(dir, opts) {
 
   if (!hits.length) { console.log('scan: nothing to map'); return }
 
-  const existing = new Set()
+  // Reconcile: existing scan nodes keyed by their path (summary may now
+  // include a heading). Match by the bare path portion so re-scans update
+  // nodes whose docs gained a heading instead of skipping them.
   const { nodes } = await allNodes(dir, manifest)
-  for (const n of nodes) if ((n.tags || []).includes('scan')) existing.add(n.summary)
-  const fresh = hits.filter((h) => !existing.has(h.rel))
-  if (!fresh.length) { console.log(`scan: up to date (${existing.size} paths already mapped)`); return }
+  const byPath = new Map()
+  for (const n of nodes) {
+    if (!(n.tags || []).includes('scan')) continue
+    const key = (n.summary || '').split(' — ')[0]
+    byPath.set(key, n)
+  }
+  const fresh = hits.filter((h) => !byPath.has(h.rel))
+  const dirty = hits.filter((h) => {
+    const old = byPath.get(h.rel)
+    return old && old.summary !== (h.desc || h.rel).slice(0, LIMITS.MAX_SUMMARY_CHARS)
+  })
+  if (!fresh.length && !dirty.length) { console.log(`scan: up to date (${byPath.size} paths already mapped)`); return }
 
   // Anchor: prefer an existing scan node so the map tree stays coherent; else
   // any existing node. If the graph is empty the first fresh node is the seed
@@ -651,6 +681,18 @@ async function scan(dir, opts) {
     const man = await loadManifest(dir)
     const idMap = await loadIdMap(dir)
     const ids = idMap ? Object.keys(idMap) : null
+    // Update summaries of existing nodes whose heading changed.
+    for (const h of dirty) {
+      const old = byPath.get(h.rel)
+      if (!old || !idMap || idMap[old.id] === undefined) continue
+      const shardNum = idMap[old.id]
+      const s = await loadShard(dir, shardNum)
+      const idx = s.nodes.findIndex((x) => x.id === old.id)
+      if (idx === -1) continue
+      s.nodes[idx] = { ...s.nodes[idx], summary: (h.desc || h.rel).slice(0, LIMITS.MAX_SUMMARY_CHARS) }
+      await writeFile(join(dir, `index.${shardNum}.json`), JSON.stringify(s, null, 2) + '\n')
+      console.log(`updated ${old.id} summary: ${(h.desc || h.rel).slice(0, LIMITS.MAX_SUMMARY_CHARS)}`)
+    }
     let firstId = null
     for (let i = 0; i < fresh.length; i++) {
       const h = fresh[i]
@@ -661,7 +703,7 @@ async function scan(dir, opts) {
       const conn = anchor
         ? [{ id: anchor, type: 'relates' }]
         : i === 0 ? [] : [{ id: firstId, type: 'relates' }]
-      const node = { id, type: h.type, status: h.status, date: today(), tags: h.tags, summary: (h.desc || h.rel).slice(0, LIMITS.MAX_SUMMARY_CHARS), conn }
+      const node = { id, type: h.type, status: h.status, date: today(), time: nowTime(), tags: h.tags, summary: (h.desc || h.rel).slice(0, LIMITS.MAX_SUMMARY_CHARS), conn }
       const shardNum = man.active_shard
       const shard = await loadShard(dir, shardNum)
       shard.nodes.push(node)
@@ -676,6 +718,83 @@ async function scan(dir, opts) {
       for (const t of h.tags) (tagsIndex[t] ??= []).push({ id, shard: shardNum })
       await saveTags(dir, tagsIndex)
       console.log(`scanned ${id} [${h.type}] ${h.rel}`)
+    }
+    await saveManifest(dir, man)
+  })
+}
+
+// Read AGENTS.md / CLAUDE.md (and any markdown doc) and turn their headings
+// and structured lines into knowledge nodes. Idempotent by summary, so
+// re-running after editing the docs fills gaps without duplicating.
+const INGEST_FILES = ['AGENTS.md', 'CLAUDE.md']
+async function ingest(dir, opts) {
+  const manifest = await loadManifest(dir)
+  if (!manifest) { fail('FAIL: atlas/ not initialized. Run: atlas init'); return }
+  const root = resolve(dirname(dir))
+  const files = INGEST_FILES.map((f) => join(root, f)).filter((f) => existsSync(f))
+  if (!files.length) { console.log('ingest: no AGENTS.md/CLAUDE.md found'); return }
+
+  // Gather candidate knowledge lines: headings + structured rule lines.
+  const hits = [] // { rel, type, summary, tags }
+  const envRe = /[A-Z][A-Z0-9_]{2,}/
+  const banRe = /\b(dilarang|jangan|never|must not|do not|forbidden|DILARANG|JANGAN)\b/i
+  for (const f of files) {
+    const rel = relative(root, f)
+    const text = await readFile(f, 'utf8')
+    const lines = text.split('\n')
+    let inCode = false
+    for (const line of lines) {
+      if (/^\s*```/.test(line)) { inCode = !inCode; continue }
+      if (inCode) continue
+      const t = line.trim()
+      if (!t) continue
+      if (/^#{1,3}\s/.test(t)) {
+        hits.push({ rel, type: 'feature', tags: ['ingest'], summary: `${rel} — ${t.replace(/^#{1,3}\s*/, '')}` })
+      } else if (/^[-*]\s+/.test(t) && (envRe.test(t) || banRe.test(t))) {
+        const isBan = banRe.test(t)
+        hits.push({ rel, type: isBan ? 'negative' : 'decision', tags: ['ingest'], summary: `${rel}: ${t.replace(/^[-*]\s+/, '')}` })
+      }
+    }
+  }
+
+  if (!hits.length) { console.log('ingest: nothing to extract'); return }
+
+  // Dedup by summary; reuse existing nodes (idempotent).
+  await withLock(dir, async () => {
+    const man = await loadManifest(dir)
+    const idMap = await loadIdMap(dir)
+    const ids = idMap ? Object.keys(idMap) : null
+    const { nodes } = await allNodes(dir, man)
+    const seen = new Set(nodes.map((n) => n.summary))
+    const fresh = hits.filter((h) => !seen.has(h.summary))
+    if (!fresh.length) { console.log(`ingest: up to date (${seen.size} knowledge nodes already mapped)`); return }
+    // Anchor to an existing node (or the first fresh node becomes the seed).
+    const anchor = nodes.find((n) => (n.tags || []).includes('ingest'))?.id ?? nodes[0]?.id ?? null
+    let firstId = null
+    for (let i = 0; i < fresh.length; i++) {
+      const h = fresh[i]
+      const prefix = PREFIX[h.type]
+      const id = nextId(ids ?? [], prefix)
+      if (ids) ids.push(id)
+      if (firstId === null) firstId = id
+      const conn = anchor
+        ? [{ id: anchor, type: 'relates' }]
+        : i === 0 ? [] : [{ id: firstId, type: 'relates' }]
+      const node = { id, type: h.type, status: 'active', date: today(), time: nowTime(), tags: h.tags, summary: h.summary.slice(0, LIMITS.MAX_SUMMARY_CHARS), conn }
+      const shardNum = man.active_shard
+      const shard = await loadShard(dir, shardNum)
+      shard.nodes.push(node)
+      await writeFile(join(dir, `index.${shardNum}.json`), JSON.stringify(shard, null, 2) + '\n')
+      man.node_count++
+      if (shard.nodes.length >= LIMITS.MAX_NODES_PER_SHARD) {
+        man.active_shard++
+        await writeFile(join(dir, `index.${man.active_shard}.json`), JSON.stringify({ shard: man.active_shard, nodes: [] }, null, 2) + '\n')
+      }
+      if (idMap) { idMap[id] = shardNum; await saveIdMap(dir, idMap) }
+      const tagsIndex = await loadTags(dir)
+      for (const t of h.tags) (tagsIndex[t] ??= []).push({ id, shard: shardNum })
+      await saveTags(dir, tagsIndex)
+      console.log(`ingested ${id} [${h.type}] ${h.summary}`)
     }
     await saveManifest(dir, man)
   })
@@ -756,6 +875,81 @@ async function update(dir, opts) {
   })
 }
 
+// Remove a node: drop it from its shard, id_map, tags_index, and nodes/*.md.
+// Refuses when other nodes still reference it unless --force.
+async function deleteNode(dir, opts) {
+  const manifest = await loadManifest(dir)
+  if (!manifest) { fail('FAIL: atlas/ not initialized. Run: atlas init'); return }
+  const id = opts._id
+  if (!isValidId(id)) { fail(`FAIL: invalid id "${id}" (expected e.g. BUG-001)`); return }
+  await withLock(dir, async () => {
+    const man = await loadManifest(dir)
+    const idMap = await loadIdMap(dir)
+    const { nodes } = await allNodes(dir, man)
+    const target = nodes.find((n) => n.id === id)
+    if (!target) { fail(`FAIL: node ${id} not found`); return }
+    const refs = nodes.filter((n) => n.id !== id && (n.conn || []).some((c) => c.id === id))
+    if (refs.length && !opts.force) {
+      fail(`FAIL: ${id} is referenced by ${refs.map((r) => r.id).join(', ')}. Use --force to delete anyway.`)
+      return
+    }
+    // With --force, strip the deleted id from other nodes' edges so the
+    // graph stays consistent (no dangling refs that trip `check`).
+    if (refs.length && opts.force) {
+      for (let n = 0; n <= man.active_shard; n++) {
+        const s = await loadShard(dir, n)
+        if (s.corrupt) continue
+        let dirty = false
+        for (const x of s.nodes) {
+          if (x.id === id) continue
+          const before = (x.conn || []).length
+          x.conn = (x.conn || []).filter((c) => c.id !== id)
+          if (x.conn.length !== before) dirty = true
+        }
+        if (dirty) await writeFile(join(dir, `index.${n}.json`), JSON.stringify(s, null, 2) + '\n')
+      }
+    }
+    // Remove from shard.
+    for (let n = 0; n <= man.active_shard; n++) {
+      const s = await loadShard(dir, n)
+      if (s.corrupt) continue
+      const before = s.nodes.length
+      s.nodes = s.nodes.filter((x) => x.id !== id)
+      if (s.nodes.length !== before) await writeFile(join(dir, `index.${n}.json`), JSON.stringify(s, null, 2) + '\n')
+    }
+    // Remove from id_map.
+    if (idMap) { delete idMap[id]; await saveIdMap(dir, idMap) }
+    // Remove from tags_index.
+    const tagsIndex = await loadTags(dir)
+    for (const t of Object.keys(tagsIndex)) {
+      tagsIndex[t] = tagsIndex[t].filter((e) => (typeof e === 'string' ? e : e.id) !== id)
+      if (!tagsIndex[t].length) delete tagsIndex[t]
+    }
+    await saveTags(dir, tagsIndex)
+    // Remove detail file.
+    await rm(join(dir, 'nodes', `${id}.md`), { force: true })
+    // Fix node_count (orphan count unchanged, we just removed a node).
+    man.node_count = Math.max(0, man.node_count - 1)
+    await saveManifest(dir, man)
+    console.log(`deleted ${id}`)
+  })
+}
+
+// Dump the whole graph as one JSON document (backup / portability).
+async function exportGraph(dir, opts) {
+  const manifest = await loadManifest(dir)
+  if (!manifest) { fail('FAIL: atlas/ not initialized. Run: atlas init'); return }
+  const { nodes, corrupt } = await allNodes(dir, manifest)
+  if (corrupt.length) { fail(`FAIL: cannot export with corrupt shard(s): ${corrupt.join(', ')}. Run: atlas check`); return }
+  const out = JSON.stringify({ version: 1, exported: new Date().toISOString(), manifest, nodes }, null, 2) + '\n'
+  if (opts.file) {
+    await writeFile(opts.file, out)
+    console.log(`exported ${nodes.length} nodes to ${opts.file}`)
+  } else {
+    process.stdout.write(out)
+  }
+}
+
 async function check(dir) {
   const manifest = await loadManifest(dir)
   if (!manifest) { fail('FAIL: atlas/manifest.json missing. Run: atlas init'); return }
@@ -789,6 +983,8 @@ async function check(dir) {
     if (!isValidId(n.id)) errors.push(`${n.id}: invalid id format (expected e.g. REQ-001)`)
     if (!TYPES.includes(n.type)) errors.push(`${n.id}: unknown type "${n.type}"`)
     if (!STATUSES.includes(n.status)) errors.push(`${n.id}: invalid/missing status "${n.status}"`)
+    if (!n.date || !/^\d{4}-\d{2}-\d{2}$/.test(n.date)) errors.push(`${n.id}: missing/invalid date "${n.date}"`)
+    if (n.time !== undefined && !/^\d{2}:\d{2}:\d{2}$/.test(n.time)) errors.push(`${n.id}: invalid time "${n.time}"`)
     if (!n.summary) errors.push(`${n.id}: missing summary`)
     else if (n.summary.length > LIMITS.MAX_SUMMARY_CHARS) errors.push(`${n.id}: summary ${n.summary.length} chars > ${LIMITS.MAX_SUMMARY_CHARS}`)
     if (!Array.isArray(n.conn) || n.conn.length === 0) {
@@ -869,6 +1065,7 @@ async function main(argv = process.argv) {
   switch (cmd) {
     case 'setup': return setup()
     case 'init': return init(atlasDir(positional[positional.length - 1] ?? '.'))
+    case 'ingest': return ingest(atlasDir(positional[positional.length - 1] ?? '.'), opts)
     case 'record': return record(atlasDir(positional[positional.length - 1] ?? '.'), opts)
     case 'query': {
       const { dirArg, rest } = splitPos(positional)
@@ -883,9 +1080,14 @@ async function main(argv = process.argv) {
       const { dirArg, rest } = splitPos(positional)
       return update(atlasDir(dirArg), { _id: opts.id || rest[0], status: opts.status, summary: opts.summary, tags: opts.tags })
     }
+    case 'delete': {
+      const { dirArg, rest } = splitPos(positional)
+      return deleteNode(atlasDir(dirArg), { _id: opts.id || rest[0], force: opts.force })
+    }
     case 'recent': return recent(atlasDir(positional[positional.length - 1] ?? '.'), opts)
     case 'stat': return stat(atlasDir(positional[positional.length - 1] ?? '.'))
     case 'scan': return scan(atlasDir(positional[positional.length - 1] ?? '.'), opts)
+    case 'export': return exportGraph(atlasDir(positional[positional.length - 1] ?? '.'), opts)
     case 'rebuild': return rebuild(atlasDir(positional[positional.length - 1] ?? '.'))
     case 'check': return check(atlasDir(positional[positional.length - 1] ?? '.'))
     default:

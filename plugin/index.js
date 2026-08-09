@@ -35,6 +35,13 @@ node <atlas> scan [--depth 2]       # map struktur repo (code-walk, idempotent)
 node <atlas> record --id TASK-003 --type task --status done --tags a,b --summary "max 140 char" --conn "BUG-001:fixes,DEC-002:led_to"
 node <atlas> record --id REQ-001 --type requirement --status active --tags core --summary "..." --conn "FEAT-001:relates" --file nodes/REQ-001.md
 
+## Auto-record minimal — WAJIB setelah kerja signifikan
+Selesai implement/analisa/fix? Record MINIMAL 1 node di command yang sama.
+Kerja besar (banyak file)? Pecah jadi beberapa node per fitur/keputusan.
+Keputusan arsitektur/kerangka -> type decision. Ketemu bug -> bug.
+Bisnis berubah -> business + archive yang lama (led_to chain).
+Ragu antara 2 tipe -> tanya user, jangan nebak.
+
 ## Bisnis — Atlas paham produknya juga. Track perubahan bisnis.
 node <atlas> record --id BUS-001 --type business --status active --tags biz,model --summary "keadaan bisnis sekarang" --conn "DEC-002:relates"
 # bisnis berubah? archive yang lama, record yang baru (chain led_to = timeline)

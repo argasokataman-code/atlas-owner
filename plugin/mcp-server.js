@@ -36,6 +36,9 @@ async function handle(method, params, id) {
         { name: 'atlas_scan', description: 'map repo structure', inputSchema: { type: 'object', properties: { target: { type: 'string' }, depth: { type: 'number' }, dir: { type: 'string' } } } },
         { name: 'atlas_record', description: 'add node', inputSchema: { type: 'object', properties: { id: { type: 'string' }, type: { type: 'string' }, status: { type: 'string' }, tags: { type: 'string' }, summary: { type: 'string' }, conn: { type: 'string' }, dir: { type: 'string' } } } },
         { name: 'atlas_update', description: 'change node', inputSchema: { type: 'object', properties: { id: { type: 'string' }, status: { type: 'string' }, summary: { type: 'string' }, tags: { type: 'string' }, dir: { type: 'string' } } } },
+        { name: 'atlas_delete', description: 'remove node', inputSchema: { type: 'object', properties: { id: { type: 'string' }, force: { type: 'boolean' }, dir: { type: 'string' } } } },
+        { name: 'atlas_ingest', description: 'read AGENTS.md/docs into knowledge nodes', inputSchema: { type: 'object', properties: { dir: { type: 'string' } } } },
+        { name: 'atlas_export', description: 'dump full graph as JSON', inputSchema: { type: 'object', properties: { dir: { type: 'string' } } } },
         { name: 'atlas_check', description: 'verify integrity', inputSchema: { type: 'object', properties: { dir: { type: 'string' } } } },
       ]
       return reply(id, { tools })
@@ -60,6 +63,12 @@ async function handle(method, params, id) {
         if (!args.id) return reply(id, { content: [{ type: 'text', text: 'FAIL: atlas_update requires id' }], isError: true })
         a.push('update', args.id, ...(args.status ? ['--status', args.status] : []), ...(args.summary ? ['--summary', args.summary] : []), ...(args.tags ? ['--tags', args.tags] : []), dir)
       }
+      if (name === 'atlas_delete') {
+        if (!args.id) return reply(id, { content: [{ type: 'text', text: 'FAIL: atlas_delete requires id' }], isError: true })
+        a.push('delete', args.id, ...(args.force ? ['--force'] : []), dir)
+      }
+      if (name === 'atlas_ingest') a.push('ingest', dir)
+      if (name === 'atlas_export') a.push('export', dir)
       if (name === 'atlas_check') a.push('check', dir)
       const res = await runCmd(a)
       return reply(id, { content: [{ type: 'text', text: res.output }], isError: res.code !== 0 })
