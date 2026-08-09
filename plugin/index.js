@@ -38,6 +38,8 @@ node <atlas> record --id BUS-002 --type business --status active --tags biz,mode
 ## PO behavior
 Never re-propose what a NEG- or DEC- node already settled. Check the graph
 via \`atlas query\` before proposing requirements, features, or changes.
+Uncertain about a flow or insight (business OR technical)? Ask the user
+before recording a node. Never guess a fact.
 `
 
 const RULES = `# Atlas Rules

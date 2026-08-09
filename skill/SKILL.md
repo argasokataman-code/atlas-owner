@@ -111,6 +111,7 @@ Tuning: `ATLAS_MAX_SHARD=500` overrides the shard size.
 ### Before work
 1. Does `atlas/` exist? No → `atlas init` (or plugin scaffolds it automatically).
 2. `atlas query "<topic from the task>"` → read relevant nodes.
+3. Any flow or insight unclear (business OR technical)? Ask the user before recording a node. Never guess a fact.
 3. Follow `conn` only if needed.
 
 ### After significant work
