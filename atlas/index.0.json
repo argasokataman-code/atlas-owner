@@ -414,6 +414,65 @@
           "raw": "BUG-002:led_to"
         }
       ]
+    },
+    {
+      "id": "BUG-003",
+      "type": "bug",
+      "status": "done",
+      "date": "2026-08-09",
+      "time": "21:10:08",
+      "tags": [
+        "skill",
+        "path",
+        "setup"
+      ],
+      "summary": "skill copy mati: SKILL.md hardcode <repo>/skill/scripts/atlas.mjs tapi copy=scripts/atlas.mjs. Fix: resolve command -v atlas || copy || repo",
+      "conn": [
+        {
+          "id": "BUG-002",
+          "type": "relates",
+          "raw": "BUG-002:relates"
+        }
+      ]
+    },
+    {
+      "id": "DEC-004",
+      "type": "decision",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "21:10:08",
+      "tags": [
+        "skill",
+        "deploy",
+        "path"
+      ],
+      "summary": "ATLAS: path atlas.mjs harus resolve otomatis (3 fallback) bukan hardcode. SKILL.md + doctor + setup wajib ikut",
+      "conn": [
+        {
+          "id": "BUG-003",
+          "type": "led_to",
+          "raw": "BUG-003:led_to"
+        }
+      ]
+    },
+    {
+      "id": "PF-001",
+      "type": "pitfall",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "21:10:08",
+      "tags": [
+        "skill",
+        "version"
+      ],
+      "summary": "skill copy gak punya package.json -> --version gagal. Fix: VERSION embed di atlas.mjs + version script sync",
+      "conn": [
+        {
+          "id": "BUG-003",
+          "type": "fixes",
+          "raw": "BUG-003:fixes"
+        }
+      ]
     }
   ]
 }

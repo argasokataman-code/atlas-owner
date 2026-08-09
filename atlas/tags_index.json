@@ -113,6 +113,10 @@
     {
       "id": "BUG-002",
       "shard": 0
+    },
+    {
+      "id": "BUG-003",
+      "shard": 0
     }
   ],
   "mcp": [
@@ -125,6 +129,14 @@
     {
       "id": "BUG-002",
       "shard": 0
+    },
+    {
+      "id": "BUG-003",
+      "shard": 0
+    },
+    {
+      "id": "DEC-004",
+      "shard": 0
     }
   ],
   "doctor": [
@@ -136,6 +148,32 @@
   "versions": [
     {
       "id": "FEAT-013",
+      "shard": 0
+    }
+  ],
+  "skill": [
+    {
+      "id": "BUG-003",
+      "shard": 0
+    },
+    {
+      "id": "DEC-004",
+      "shard": 0
+    },
+    {
+      "id": "PF-001",
+      "shard": 0
+    }
+  ],
+  "deploy": [
+    {
+      "id": "DEC-004",
+      "shard": 0
+    }
+  ],
+  "version": [
+    {
+      "id": "PF-001",
       "shard": 0
     }
   ]
