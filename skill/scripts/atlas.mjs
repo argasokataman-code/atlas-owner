@@ -72,7 +72,7 @@ node <atlas> update BUS-001 --status archived
 node <atlas> record --id BUS-002 --type business --status active --tags biz,model --summary "keadaan baru" --conn "BUS-001:led_to"
 
 ## Limits (dienforce oleh check)
-- summary <= 140 chars
+- summary <= 140 chars (auto-truncate ke nodes/{ID}.md kalau lebih panjang — gak ada yang hilang)
 - node detail file <= 200 lines
 - 1 shard <= 300 nodes (auto-split saat record)
 - >= 1 conn per node. No orphan.
@@ -334,9 +334,12 @@ async function record(dir, opts) {
   if (!STATUSES.includes(opts.status)) { fail(`FAIL: invalid --status "${opts.status}". Valid: ${STATUSES.join(', ')}`); return }
   const summary = opts.summary
   if (!summary) { fail('FAIL: --summary required'); return }
-  if (summary.length > LIMITS.MAX_SUMMARY_CHARS) { fail(`FAIL: --summary ${summary.length} chars > limit ${LIMITS.MAX_SUMMARY_CHARS}`); return }
   const tags = opts.tags ? opts.tags.split(',').map((t) => t.trim()).filter(Boolean) : []
   const conn = parseConn(opts.conn)
+  // Over-long summary: don't drop it. Store the full text in nodes/{ID}.md and
+  // keep a truncated summary in the node so nothing is lost.
+  let overflow = null
+  if (summary.length > LIMITS.MAX_SUMMARY_CHARS) overflow = summary
   let filePath = null
   if (opts.file) {
     filePath = resolveNodeFile(dir, opts.file)
@@ -377,7 +380,7 @@ async function record(dir, opts) {
       seen.add(key)
     }
 
-    const node = { id, type: opts.type, status: opts.status, date: today(), tags, summary, conn }
+    const node = { id, type: opts.type, status: opts.status, date: today(), tags, summary: overflow ? summary.slice(0, LIMITS.MAX_SUMMARY_CHARS) : summary, conn }
     const shardNum = man.active_shard
     const shard = await loadShard(dir, shardNum)
     if (shard.corrupt) { fail(`FAIL: active shard corrupt: ${shard.corrupt}. Run: atlas check`); return }
@@ -397,6 +400,13 @@ async function record(dir, opts) {
       ;(tagsIndex[t] ??= []).push({ id, shard: shardNum })
     }
     await saveTags(dir, tagsIndex)
+
+    // Over-long summary: store the full text as the node's detail file so
+    // nothing is lost. Truncate the stored summary so check stays green.
+    if (overflow) {
+      await mkdir(join(dir, 'nodes'), { recursive: true })
+      await writeFile(join(dir, 'nodes', `${id}.md`), overflow + '\n')
+    }
 
     // Copy the detail file into nodes/{ID}.md so `get` can show it. The file
     // may live outside atlas/ (project root) but never outside the project.

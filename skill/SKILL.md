@@ -127,7 +127,7 @@ Tuning: `ATLAS_MAX_SHARD=500` overrides the shard size.
 ### After significant work
 Record a node in the SAME change that did the work:
 1. `atlas record --type <type> --status <status> --tags a,b --summary "≤140 chars" --conn "ID:type,..."`.
-2. Add `--file nodes/{ID}.md` when detail exceeds the summary (≤ 200 lines).
+2. Add `--file nodes/{ID}.md` when detail exceeds the summary (≤ 200 lines). A summary longer than 140 chars is auto-truncated and the full text stored in `nodes/{ID}.md` — nothing is lost.
 3. CLI keeps shards, tags_index, and auto-ID in sync. `atlas check` verifies.
 
 ### PO behavior

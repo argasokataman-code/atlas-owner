@@ -42,7 +42,7 @@ node <atlas> update BUS-001 --status archived
 node <atlas> record --id BUS-002 --type business --status active --tags biz,model --summary "keadaan baru" --conn "BUS-001:led_to"
 
 ## Limits (dienforce oleh check)
-- summary <= 140 chars
+- summary <= 140 chars (auto-truncate ke nodes/{ID}.md kalau lebih panjang — gak ada yang hilang)
 - node detail file <= 200 lines
 - 1 shard <= 300 nodes (auto-split saat record)
 - >= 1 conn per node. No orphan.
