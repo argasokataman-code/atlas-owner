@@ -1,0 +1,36 @@
+{
+  "ingest": [
+    {
+      "id": "FEAT-001",
+      "shard": 0
+    },
+    {
+      "id": "FEAT-002",
+      "shard": 0
+    },
+    {
+      "id": "FEAT-003",
+      "shard": 0
+    },
+    {
+      "id": "FEAT-004",
+      "shard": 0
+    },
+    {
+      "id": "FEAT-005",
+      "shard": 0
+    },
+    {
+      "id": "DEC-001",
+      "shard": 0
+    },
+    {
+      "id": "DEC-002",
+      "shard": 0
+    },
+    {
+      "id": "FEAT-006",
+      "shard": 0
+    }
+  ]
+}

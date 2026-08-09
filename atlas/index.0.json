@@ -1,0 +1,136 @@
+{
+  "shard": 0,
+  "nodes": [
+    {
+      "id": "FEAT-001",
+      "type": "feature",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:26:17",
+      "tags": [
+        "ingest"
+      ],
+      "summary": "AGENTS.md — AGENTS.md — Atlas Owner",
+      "conn": []
+    },
+    {
+      "id": "FEAT-002",
+      "type": "feature",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:26:17",
+      "tags": [
+        "ingest"
+      ],
+      "summary": "AGENTS.md — What this repo is",
+      "conn": [
+        {
+          "id": "FEAT-001",
+          "type": "relates"
+        }
+      ]
+    },
+    {
+      "id": "FEAT-003",
+      "type": "feature",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:26:17",
+      "tags": [
+        "ingest"
+      ],
+      "summary": "AGENTS.md — Hard rules (do not break)",
+      "conn": [
+        {
+          "id": "FEAT-001",
+          "type": "relates"
+        }
+      ]
+    },
+    {
+      "id": "FEAT-004",
+      "type": "feature",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:26:17",
+      "tags": [
+        "ingest"
+      ],
+      "summary": "AGENTS.md — Verify before committing",
+      "conn": [
+        {
+          "id": "FEAT-001",
+          "type": "relates"
+        }
+      ]
+    },
+    {
+      "id": "FEAT-005",
+      "type": "feature",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:26:17",
+      "tags": [
+        "ingest"
+      ],
+      "summary": "AGENTS.md — Changing behavior",
+      "conn": [
+        {
+          "id": "FEAT-001",
+          "type": "relates"
+        }
+      ]
+    },
+    {
+      "id": "DEC-001",
+      "type": "decision",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:26:17",
+      "tags": [
+        "ingest"
+      ],
+      "summary": "AGENTS.md: CLI behavior change → update `skill/SKILL.md`, `README.md`, and the duplicated PROTOCOL templates together. Three places, one fea",
+      "conn": [
+        {
+          "id": "FEAT-001",
+          "type": "relates"
+        }
+      ]
+    },
+    {
+      "id": "DEC-002",
+      "type": "decision",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:26:17",
+      "tags": [
+        "ingest"
+      ],
+      "summary": "AGENTS.md: New node/conn type → update `TYPES` / `CONN_TYPES` in `atlas.mjs`, plus the PROTOCOL/RULES text in both files, plus `skill/SKILL.",
+      "conn": [
+        {
+          "id": "FEAT-001",
+          "type": "relates"
+        }
+      ]
+    },
+    {
+      "id": "FEAT-006",
+      "type": "feature",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:26:17",
+      "tags": [
+        "ingest"
+      ],
+      "summary": "AGENTS.md — Commit style",
+      "conn": [
+        {
+          "id": "FEAT-001",
+          "type": "relates"
+        }
+      ]
+    }
+  ]
+}
