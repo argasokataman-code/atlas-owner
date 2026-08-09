@@ -18,6 +18,7 @@ Graph memory for Product Owner behavior. Read before work, follow after work.
 node <atlas> query "keywords" [--tags a,b] [--limit 5]
 node <atlas> recent [--limit 10]    # node terbaru
 node <atlas> get ID
+node <atlas> scan [--depth 2]       # map struktur repo (code-walk, idempotent)
 
 ## Record — tiap kerja signifikan, langsung di command yang sama.
 node <atlas> record --id TASK-003 --type task --status done --tags a,b --summary "max 140 char" --conn "BUG-001:fixes,DEC-002:led_to"

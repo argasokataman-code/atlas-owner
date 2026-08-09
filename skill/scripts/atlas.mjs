@@ -9,6 +9,7 @@
 //   atlas recent [--limit N] [dir]       newest nodes
 //   atlas stat [dir]                     one-line counts by type/status
 //   atlas rebuild [dir]                  rebuild id_map.json + tags_index.json
+//   atlas scan [dir] [--target X] [--depth N]   map repo structure as feature/task nodes
 //   atlas check [dir]
 //
 // Structure (modular on purpose):
@@ -22,7 +23,7 @@
 // Token rule: AI must call `atlas query/get`, never read atlas/*.json raw.
 import { open, mkdir, readFile, writeFile, readdir, rm, stat as statFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
-import { dirname, join, resolve, sep } from 'node:path'
+import { dirname, join, resolve, sep, relative } from 'node:path'
 
 const TYPES = ['requirement', 'feature', 'task', 'bug', 'decision', 'business', 'positive', 'negative', 'edge', 'pitfall']
 const CONN_TYPES = ['fixes', 'caused', 'led_to', 'relates', 'blocks', 'depends', 'contradicts', 'example_of', 'implements', 'satisfies']
@@ -47,6 +48,7 @@ Graph memory for Product Owner behavior. Read before work, follow after work.
 node <atlas> query "keywords" [--tags a,b] [--limit 5]
 node <atlas> recent [--limit 10]    # node terbaru
 node <atlas> get ID
+node <atlas> scan [--depth 2]       # map struktur repo (code-walk, idempotent)
 
 ## Record — tiap kerja signifikan, langsung di command yang sama.
 node <atlas> record --id TASK-003 --type task --status done --tags a,b --summary "max 140 char" --conn "BUG-001:fixes,DEC-002:led_to"
@@ -99,7 +101,7 @@ const README = `# Atlas — Product Owner Graph Memory
 `
 
 const usage = () => `Usage:
-  atlas init|record|query|get|update|recent|stat|rebuild|check [dir]
+  atlas init|record|query|get|update|recent|stat|scan|rebuild|check [dir]
 
 Commands:
   init        scaffold atlas/
@@ -109,6 +111,7 @@ Commands:
   update ID   change node (--status/--summary/--tags)
   recent      newest nodes (--limit N, default 10)
   stat        one-line counts by type/status
+  scan        map repo structure (--target path, --depth N; code-walk, idempotent)
   rebuild     rebuild id_map.json + tags_index.json (fixes drift)
   check       verify integrity + limits`
 
@@ -515,6 +518,87 @@ async function rebuild(dir) {
   })
 }
 
+// Walk the repo by code (not by AI guesswork) and record structure as nodes.
+// Directories -> feature, files -> task. Skips vcs/deps/build dirs + atlas/.
+// Idempotent: already-recorded paths are skipped, so re-running just fills gaps.
+async function scan(dir, opts) {
+  const manifest = await loadManifest(dir)
+  if (!manifest) { fail('FAIL: atlas/ not initialized. Run: atlas init'); return }
+  const root = resolve(dirname(dir))
+  const depth = Math.max(1, parseInt(opts.depth, 10) || 1)
+  const targetArg = opts.target ? resolve(root, opts.target) : root
+  if (targetArg !== root && !targetArg.startsWith(root + sep)) { fail(`FAIL: --target outside project: ${opts.target}`); return }
+
+  const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'coverage', '.next', '.cache', '.bun', '.venv', 'venv', '.yarn'])
+  const SKIP_FILES = new Set(['package-lock.json', 'yarn.lock', 'bun.lockb', '.DS_Store'])
+  const hits = []
+
+  async function walk(p, d) {
+    if (d > depth) return
+    let entries
+    try { entries = await readdir(p, { withFileTypes: true }) } catch { return }
+    entries.sort((a, b) => (a.isDirectory() === b.isDirectory() ? a.name.localeCompare(b.name) : a.isDirectory() ? -1 : 1))
+    for (const e of entries) {
+      const rel = relative(root, join(p, e.name))
+      if (rel === 'atlas') continue
+      if (e.isDirectory()) {
+        if (SKIP_DIRS.has(e.name)) continue
+        hits.push({ rel, type: 'feature', status: 'active', tags: ['scan'] })
+        if (d < depth) await walk(join(p, e.name), d + 1)
+      } else if (!SKIP_FILES.has(e.name)) {
+        hits.push({ rel, type: 'task', status: 'active', tags: ['scan'] })
+      }
+    }
+  }
+  await walk(targetArg, 1)
+
+  if (!hits.length) { console.log('scan: nothing to map'); return }
+
+  const existing = new Set()
+  const { nodes } = await allNodes(dir, manifest)
+  for (const n of nodes) if ((n.tags || []).includes('scan')) existing.add(n.summary)
+  const fresh = hits.filter((h) => !existing.has(h.rel))
+  if (!fresh.length) { console.log(`scan: up to date (${existing.size} paths already mapped)`); return }
+
+  // Anchor: prefer an existing scan node so the map tree stays coherent; else
+  // any existing node. If the graph is empty the first fresh node is the seed
+  // (only edge-less node), rest connect to it.
+  const anchor = nodes.find((n) => (n.tags || []).includes('scan'))?.id ?? nodes[0]?.id ?? null
+
+  await withLock(dir, async () => {
+    const man = await loadManifest(dir)
+    const idMap = await loadIdMap(dir)
+    const ids = idMap ? Object.keys(idMap) : null
+    let firstId = null
+    for (let i = 0; i < fresh.length; i++) {
+      const h = fresh[i]
+      const prefix = PREFIX[h.type]
+      const id = nextId(ids ?? [], prefix)
+      if (ids) ids.push(id)
+      if (firstId === null) firstId = id
+      const conn = anchor
+        ? [{ id: anchor, type: 'relates' }]
+        : i === 0 ? [] : [{ id: firstId, type: 'relates' }]
+      const node = { id, type: h.type, status: h.status, date: today(), tags: h.tags, summary: h.rel.slice(0, LIMITS.MAX_SUMMARY_CHARS), conn }
+      const shardNum = man.active_shard
+      const shard = await loadShard(dir, shardNum)
+      shard.nodes.push(node)
+      await writeFile(join(dir, `index.${shardNum}.json`), JSON.stringify(shard, null, 2) + '\n')
+      man.node_count++
+      if (shard.nodes.length >= LIMITS.MAX_NODES_PER_SHARD) {
+        man.active_shard++
+        await writeFile(join(dir, `index.${man.active_shard}.json`), JSON.stringify({ shard: man.active_shard, nodes: [] }, null, 2) + '\n')
+      }
+      if (idMap) { idMap[id] = shardNum; await saveIdMap(dir, idMap) }
+      const tagsIndex = await loadTags(dir)
+      for (const t of h.tags) (tagsIndex[t] ??= []).push({ id, shard: shardNum })
+      await saveTags(dir, tagsIndex)
+      console.log(`scanned ${id} [${h.type}] ${h.rel}`)
+    }
+    await saveManifest(dir, man)
+  })
+}
+
 async function update(dir, opts) {
   const manifest = await loadManifest(dir)
   if (!manifest) { fail('FAIL: atlas/ not initialized. Run: atlas init'); return }
@@ -718,6 +802,7 @@ async function main(argv = process.argv) {
     }
     case 'recent': return recent(atlasDir(positional[positional.length - 1] ?? '.'), opts)
     case 'stat': return stat(atlasDir(positional[positional.length - 1] ?? '.'))
+    case 'scan': return scan(atlasDir(positional[positional.length - 1] ?? '.'), opts)
     case 'rebuild': return rebuild(atlasDir(positional[positional.length - 1] ?? '.'))
     case 'check': return check(atlasDir(positional[positional.length - 1] ?? '.'))
     default:

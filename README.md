@@ -71,6 +71,8 @@ atlas recent /path/to/project
 atlas stat /path/to/project
 atlas get BUG-001 /path/to/project
 atlas update BUG-001 --status archived /path/to/project
+atlas scan /path/to/project            # map repo structure (code-walk, idempotent)
+atlas scan /path/to/project --target src --depth 3   # deeper map of one subtree
 atlas rebuild /path/to/project
 atlas check /path/to/project
 ```

@@ -120,8 +120,9 @@ Tuning: `ATLAS_MAX_SHARD=500` overrides the shard size.
 ### Before work
 1. Does `atlas/` exist? No → `atlas init` (or plugin scaffolds it automatically).
 2. `atlas query "<topic from the task>"` → read relevant nodes.
-3. Any flow or insight unclear (business OR technical)? Ask the user before recording a node. Never guess a fact.
-3. Follow `conn` only if needed.
+3. New/large project, no map yet? `atlas scan` to map repo structure (code-walk, not guesswork). Then `atlas query` the relevant paths.
+4. Any flow or insight unclear (business OR technical)? Ask the user before recording a node. Never guess a fact.
+5. Follow `conn` only if needed.
 
 ### After significant work
 Record a node in the SAME change that did the work:
