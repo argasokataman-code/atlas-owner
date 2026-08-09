@@ -23,6 +23,7 @@
 // Token rule: AI must call `atlas query/get`, never read atlas/*.json raw.
 import { open, mkdir, readFile, writeFile, readdir, rm, stat as statFile } from 'node:fs/promises'
 import { existsSync, readFileSync, realpathSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
 import { dirname, join, resolve, sep, relative } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
@@ -137,6 +138,7 @@ Commands:
   stat        one-line counts by type/status
   scan        map repo structure (--target path, --depth N; code-walk, idempotent)
   rebuild     rebuild id_map.json + tags_index.json (fixes drift)
+  doctor      check installed versions across npm/global/skill/MCP
   check       verify integrity + limits`
 
 const fail = (msg) => { console.error(msg); process.exitCode = 1 }
@@ -293,13 +295,34 @@ async function init(dir) {
   await check(dir)
 }
 
+// Find the package root by walking up until a package.json named
+// atlas-owner is found. Works whether this file runs from the repo
+// (skill/scripts/), the npm install (skill/scripts/), or a skill copy
+// (scripts/ inside skills/atlas-owner) — "../../" alone is wrong for
+// skill copies and would point plugin/ at a nonexistent path.
+function findPkgRoot(from = dirname(fileURLToPath(import.meta.url))) {
+  let d = from
+  while (d && d !== dirname(d)) {
+    const pkg = join(d, 'package.json')
+    if (existsSync(pkg)) {
+      try { if ((JSON.parse(readFileSync(pkg, 'utf8')).name || '') === 'atlas-owner') return d } catch { /* keep walking */ }
+    }
+    d = dirname(d)
+  }
+  return from
+}
+
 // Auto-install: register atlas MCP server + enforce plugin in the global
 // opencode config so a fresh session has both without manual editing.
 async function setup() {
   const home = process.env.HOME || ''
   const cfgPath = join(home, '.config', 'opencode', 'opencode.json')
   const cfg = existsSync(cfgPath) ? (tryParseJson(await readFile(cfgPath, 'utf8')) || {}) : {}
-  const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
+  const root = findPkgRoot()
+  if (root === dirname(fileURLToPath(import.meta.url)) || !existsSync(join(root, 'plugin', 'index.js'))) {
+    console.error('FAIL: atlas setup must run from a repo/npm install, not a skill copy.')
+    return
+  }
   const pluginPath = join(root, 'plugin', 'index.js')
   const mcpServerPath = join(root, 'plugin', 'mcp-server.js')
   let changed = false
@@ -324,6 +347,69 @@ async function setup() {
   await writeFile(cfgPath, JSON.stringify(cfg, null, 2) + '\n')
   if (changed) console.log(`atlas installed into ${cfgPath}\n  plugin: ${pluginPath}\n  mcp:    ${mcpServerPath}\nRestart opencode for it to take effect.`)
   else console.log(`atlas already installed in ${cfgPath} (no change)`)
+}
+
+// Read the "version" field of a package.json without requiring it (file may
+// not be a valid module). Returns null on any failure.
+function pkgVersion(pkgPath) {
+  try { return JSON.parse(readFileSync(pkgPath, 'utf8')).version ?? null } catch { return null }
+}
+
+// Best-effort shell command; returns stdout trimmed or null.
+function sh(cmd, args) {
+  try { return spawnSync(cmd, args, { encoding: 'utf8', timeout: 10000 }).stdout.trim() || null } catch { return null }
+}
+
+// Compare versions of every installed atlas: the copy this CLI is running
+// from, the npm global install, the opencode skill copy, and the path wired
+// into the opencode MCP config. Prints a table + what to run to fix drift.
+async function doctor() {
+  const home = process.env.HOME || ''
+  const thisRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
+  const mine = pkgVersion(join(thisRoot, 'package.json'))
+  const rows = [['where', 'version', 'status']]
+
+  const skill = join(home, '.config', 'opencode', 'skills', 'atlas-owner', 'scripts', 'atlas.mjs')
+  // Skill copy has no package.json of its own; report whether its atlas.mjs
+  // matches the CLI running right now, which is the thing that matters.
+  let skillV = null, skillSync = false
+  if (existsSync(skill)) {
+    const mine = readFileSync(fileURLToPath(import.meta.url), 'utf8')
+    const copy = readFileSync(skill, 'utf8')
+    skillSync = mine === copy
+    skillV = skillSync ? pkgVersion(join(thisRoot, 'package.json')) : 'drifted'
+  }
+
+  const cfgPath = join(home, '.config', 'opencode', 'opencode.json')
+  const cfg = existsSync(cfgPath) ? tryParseJson(readFileSync(cfgPath, 'utf8')) : null
+  const mcpPath = cfg?.mcp?.atlas?.command?.[1] || null
+  const mcpV = mcpPath && existsSync(mcpPath)
+    ? pkgVersion(join(dirname(mcpPath), '..', 'package.json'))
+    : null
+
+  const globalRoot = sh('npm', ['root', '-g'])
+  const globalV = globalRoot ? pkgVersion(join(globalRoot, 'atlas-owner', 'package.json')) : null
+
+  const latest = sh('npm', ['view', 'atlas-owner', 'version']) || '?'
+
+  const pushes = []
+  const push = (where, v, flag, note) => {
+    rows.push([where, v ?? 'missing', flag, note || ''])
+    if (flag !== 'ok') pushes.push(note)
+  }
+
+  push('this CLI', mine, mine === latest ? 'ok' : (mine ? 'outdated' : 'missing'), mine === latest ? '' : `publish + install ${latest}`)
+  push('npm global', globalV, globalV === latest ? 'ok' : (globalV ? 'outdated' : 'missing'), globalV === latest ? '' : `npm install -g atlas-owner@${latest}`)
+  push('skill copy', skillV, skillSync ? 'ok' : (skillV ? 'outdated' : 'missing'), skillSync ? '' : `re-copy skill/ -> ~/.config/opencode/skills/atlas-owner`)
+  push('MCP config', mcpV, mcpV === latest ? 'ok' : (mcpV ? 'outdated' : 'missing'), mcpV === latest ? '' : `re-run: atlas setup`)
+
+  const w = Math.max(...rows.map((r) => r[0].length), 6)
+  console.log('atlas install status (latest on npm: ' + latest + '):')
+  for (const [a, b, c, d] of rows) {
+    console.log(`  ${a.padEnd(w)}  ${(b ?? '').padEnd(9)}  ${c.padEnd(8)}${d ? '→ ' + d : ''}`)
+  }
+  console.log('  Note: opencode loads MCP/plugin at session start. After updating, restart opencode.')
+  if (pushes.length) console.log('\nFix:\n  ' + pushes.join('\n  '))
 }
 
 function parseConn(raw) {
@@ -1065,7 +1151,8 @@ async function check(dir) {
 async function main(argv = process.argv) {
   const { cmd, opts, positional } = parseArgs(argv)
   if (cmd === '--version' || cmd === '-v') {
-    const pkgPath = fileURLToPath(new URL('../../package.json', import.meta.url))
+    const root = findPkgRoot()
+    const pkgPath = join(root, 'package.json')
     try { console.log(JSON.parse(readFileSync(pkgPath, 'utf8')).version) } catch { console.log('unknown') }
     return
   }
@@ -1096,6 +1183,7 @@ async function main(argv = process.argv) {
     case 'scan': return scan(atlasDir(positional[positional.length - 1] ?? '.'), opts)
     case 'export': return exportGraph(atlasDir(positional[positional.length - 1] ?? '.'), opts)
     case 'rebuild': return rebuild(atlasDir(positional[positional.length - 1] ?? '.'))
+    case 'doctor': return doctor()
     case 'check': return check(atlasDir(positional[positional.length - 1] ?? '.'))
     default:
       console.error(usage())
