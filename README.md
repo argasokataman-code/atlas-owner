@@ -70,6 +70,7 @@ atlas query "hreflang" --limit 5 /path/to/project
 atlas recent /path/to/project
 atlas stat /path/to/project
 atlas get BUG-001 /path/to/project
+atlas update BUG-001 --status archived /path/to/project
 atlas rebuild /path/to/project
 atlas check /path/to/project
 ```
@@ -95,7 +96,9 @@ Corrupt shards are skipped with a WARN by `query`/`get`/`recent`/`stat` and flag
 
 ## Node types
 
-requirement · feature · task · bug · decision · positive · negative · edge · pitfall
+requirement · feature · task · bug · decision · business · positive · negative · edge · pitfall
+
+`business` (`BUS-`) tracks the product's business state. When the business changes: `atlas update BUS-xxx --status archived` then record the new state with `--conn "BUS-xxx:led_to"` — the `led_to` chain is a queryable business timeline (when it changed, from what to what, why).
 
 ## Edge types
 

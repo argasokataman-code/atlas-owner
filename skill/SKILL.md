@@ -34,6 +34,7 @@ node <atlas> record --id TASK-003 --type task --status done \
 node <atlas> query "keywords" [--tags a,b] [--limit 5] [dir]
 node <atlas> recent [--limit 10] [dir]                    # newest nodes
 node <atlas> get ID [dir]
+node <atlas> update ID --status archived [dir]            # change status/summary/tags
 node <atlas> stat [dir]                                   # one-line counts
 node <atlas> rebuild [dir]                                # fix id_map/tags drift
 node <atlas> check [dir]                                  # integrity + limits
@@ -77,6 +78,7 @@ Tuning: `ATLAS_MAX_SHARD=500` overrides the shard size.
 | task | `TASK-` | Significant work completed |
 | bug | `BUG-` | Bug found or fixed |
 | decision | `DEC-` | Important architecture/product decision |
+| business | `BUS-` | Current business state; archive old + `led_to` new = business timeline |
 | positive | `POS-` | What worked / good pattern |
 | negative | `NEG-` | What failed / wrong step |
 | edge | `EDGE-` | Edge case discovered |
@@ -120,6 +122,11 @@ Record a node in the SAME change that did the work:
 ### PO behavior
 - Before proposing a feature or change: `atlas query` the topic. Do not re-propose what a `NEG-` or `DEC-` node already settled.
 - When status changes (e.g. requirement shipped): record a `TASK-` node with `--conn "REQ-001:implements"`, keep the chain readable.
+
+### Business tracking (PO knows the product's business too)
+- Record current business state as a `BUS-` node (`--tags biz,model`, status `active`): pricing, margin, segments, KPIs, partnerships.
+- When the business changes: `atlas update BUS-xxx --status archived`, then record the new state with `--conn "BUS-xxx:led_to"`. The `led_to` chain is the business timeline — `atlas query "biz" --tags biz` or `atlas recent` shows when and why it changed.
+- Keep the detail file (`--file nodes/BUS-xxx.md`, ≤ 200 lines) for numbers that exceed the summary; link to source documents (e.g. Obsidian) inside it.
 
 ## Install
 

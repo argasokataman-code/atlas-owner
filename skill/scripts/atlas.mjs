@@ -24,10 +24,10 @@ import { open, mkdir, readFile, writeFile, readdir, rm, stat as statFile } from 
 import { existsSync } from 'node:fs'
 import { dirname, join, resolve, sep } from 'node:path'
 
-const TYPES = ['requirement', 'feature', 'task', 'bug', 'decision', 'positive', 'negative', 'edge', 'pitfall']
+const TYPES = ['requirement', 'feature', 'task', 'bug', 'decision', 'business', 'positive', 'negative', 'edge', 'pitfall']
 const CONN_TYPES = ['fixes', 'caused', 'led_to', 'relates', 'blocks', 'depends', 'contradicts', 'example_of', 'implements', 'satisfies']
 const STATUSES = ['active', 'done', 'fixed', 'open', 'archived']
-const PREFIX = { requirement: 'REQ', feature: 'FEAT', task: 'TASK', bug: 'BUG', decision: 'DEC', positive: 'POS', negative: 'NEG', edge: 'EDGE', pitfall: 'PF' }
+const PREFIX = { requirement: 'REQ', feature: 'FEAT', task: 'TASK', bug: 'BUG', decision: 'DEC', business: 'BUS', positive: 'POS', negative: 'NEG', edge: 'EDGE', pitfall: 'PF' }
 
 export const LIMITS = {
   MAX_NODES_PER_SHARD: Number(process.env.ATLAS_MAX_SHARD) || 300,
@@ -52,6 +52,12 @@ node <atlas> get ID
 node <atlas> record --id TASK-003 --type task --status done --tags a,b --summary "max 140 char" --conn "BUG-001:fixes,DEC-002:led_to"
 node <atlas> record --id REQ-001 --type requirement --status active --tags core --summary "..." --conn "FEAT-001:relates" --file nodes/REQ-001.md
 
+## Bisnis — Atlas paham produknya juga. Track perubahan bisnis.
+node <atlas> record --id BUS-001 --type business --status active --tags biz,model --summary "keadaan bisnis sekarang" --conn "DEC-002:relates"
+# bisnis berubah? archive yang lama, record yang baru (chain led_to = timeline)
+node <atlas> update BUS-001 --status archived
+node <atlas> record --id BUS-002 --type business --status active --tags biz,model --summary "keadaan baru" --conn "BUS-001:led_to"
+
 ## Limits (dienforce oleh check)
 - summary <= 140 chars
 - node detail file <= 200 lines
@@ -67,7 +73,7 @@ const RULES = `# Atlas Rules
 
 - Every fact = one node. No orphan nodes: each node has >= 1 conn edge.
 - Modular: nodes live in index.{n}.json shards (auto-split at ${LIMITS.MAX_NODES_PER_SHARD} default; ATLAS_MAX_SHARD overrides). id_map.json maps id -> shard; tags_index.json maps tag -> [{id, shard}].
-- Never read atlas/*.json raw. Use the CLI: query, recent, get, record.
+- Never read atlas/*.json raw. Use the CLI: query, recent, get, record, update.
 - summary <= ${LIMITS.MAX_SUMMARY_CHARS} chars. node files <= ${LIMITS.MAX_MD_LINES} lines.
 
 ## Types: ${TYPES.join(', ')}
@@ -83,13 +89,14 @@ const README = `# Atlas — Product Owner Graph Memory
 `
 
 const usage = () => `Usage:
-  atlas init|record|query|get|recent|stat|rebuild|check [dir]
+  atlas init|record|query|get|update|recent|stat|rebuild|check [dir]
 
 Commands:
   init        scaffold atlas/
   record      add node (--id --type --status --tags --summary --conn [--file])
   query       search ("keywords" [--tags a,b] [--limit N])
   get ID      show node
+  update ID   change node (--status/--summary/--tags)
   recent      newest nodes (--limit N, default 10)
   stat        one-line counts by type/status
   rebuild     rebuild id_map.json + tags_index.json (fixes drift)
@@ -465,8 +472,7 @@ async function recent(dir, opts) {
   console.log(`(${newest.length}/${manifest.node_count} nodes)`)
 }
 
-async function stat(dir) {
-  const manifest = await loadManifest(dir)
+async function stat(dir) {  const manifest = await loadManifest(dir)
   if (!manifest) { fail('FAIL: atlas/ not initialized. Run: atlas init'); return }
   const { nodes, corrupt } = await allNodes(dir, manifest)
   if (corrupt.length) console.error(`WARN: ${corrupt.length} corrupt shard(s) skipped. Run: atlas check`)
@@ -496,6 +502,81 @@ async function rebuild(dir) {
     man.node_count = nodes.length
     await saveManifest(dir, man)
     console.log(`rebuilt id_map.json (${Object.keys(idMap).length} ids) + tags_index.json (${Object.keys(tags).length} tags)`)
+  })
+}
+
+async function update(dir, opts) {
+  const manifest = await loadManifest(dir)
+  if (!manifest) { fail('FAIL: atlas/ not initialized. Run: atlas init'); return }
+  const id = opts._id
+  if (!isValidId(id)) { fail(`FAIL: invalid id "${id}" (expected e.g. BUS-001)`); return }
+  if (opts.status && !STATUSES.includes(opts.status)) { fail(`FAIL: invalid --status "${opts.status}". Valid: ${STATUSES.join(', ')}`); return }
+  if (!opts.status && !opts.summary && !opts.tags) { fail('FAIL: nothing to update (--status/--summary/--tags required)'); return }
+  if (opts.summary && opts.summary.length > LIMITS.MAX_SUMMARY_CHARS) { fail(`FAIL: --summary ${opts.summary.length} chars > limit ${LIMITS.MAX_SUMMARY_CHARS}`); return }
+  const newTags = opts.tags ? opts.tags.split(',').map((t) => t.trim()).filter(Boolean) : null
+
+  await withLock(dir, async () => {
+    const man = await loadManifest(dir)
+    const idMap = await loadIdMap(dir)
+    const find = async () => {
+      if (idMap && idMap[id] !== undefined) {
+        const shardNum = idMap[id]
+        const s = await loadShard(dir, shardNum)
+        if (s.corrupt) return null
+        return { node: s.nodes.find((x) => x.id === id), shardNum }
+      }
+      const r = await allNodes(dir, man)
+      const node = r.nodes.find((x) => x.id === id)
+      if (!node) return null
+      for (let n = 0; n <= man.active_shard; n++) {
+        const s = await loadShard(dir, n)
+        if (s.corrupt) continue
+        if (s.nodes.some((x) => x.id === id)) return { node, shardNum: n }
+      }
+      return { node, shardNum: null }
+    }
+    const found = await find()
+    if (!found || !found.node) { fail(`FAIL: node ${id} not found`); return }
+
+    const node = found.node
+    if (opts.status) node.status = opts.status
+    if (opts.summary) node.summary = opts.summary
+
+    if (newTags) {
+      const removed = (node.tags || []).filter((t) => !newTags.includes(t))
+      const added = newTags.filter((t) => !(node.tags || []).includes(t))
+      node.tags = newTags
+      const tagsIndex = await loadTags(dir)
+      for (const t of removed) {
+        tagsIndex[t] = (tagsIndex[t] || []).filter((e) => (typeof e === 'string' ? e : e.id) !== id)
+        if (tagsIndex[t].length === 0) delete tagsIndex[t]
+      }
+      for (const t of added) {
+        ;(tagsIndex[t] ??= []).push({ id, shard: found.shardNum ?? idMap?.[id] })
+      }
+      await saveTags(dir, tagsIndex)
+    }
+
+    // Write back to its shard. If no idMap, locate by scan.
+    if (found.shardNum !== null) {
+      const shardNum = found.shardNum
+      const s = await loadShard(dir, shardNum)
+      const idx = s.nodes.findIndex((x) => x.id === id)
+      s.nodes[idx] = node
+      await writeFile(join(dir, `index.${shardNum}.json`), JSON.stringify(s, null, 2) + '\n')
+    } else {
+      for (let n = 0; n <= man.active_shard; n++) {
+        const s = await loadShard(dir, n)
+        if (s.corrupt) continue
+        const idx = s.nodes.findIndex((x) => x.id === id)
+        if (idx !== -1) {
+          s.nodes[idx] = node
+          await writeFile(join(dir, `index.${n}.json`), JSON.stringify(s, null, 2) + '\n')
+          break
+        }
+      }
+    }
+    console.log(`updated ${id} (status=${opts.status || '-'}${newTags ? `, tags=${newTags.join(',')}` : ''})`)
   })
 }
 
@@ -607,8 +688,8 @@ async function check(dir) {
   }
 }
 
-async function main() {
-  const { cmd, opts, positional } = parseArgs(process.argv)
+async function main(argv = process.argv) {
+  const { cmd, opts, positional } = parseArgs(argv)
   switch (cmd) {
     case 'init': return init(atlasDir(positional[positional.length - 1] ?? '.'))
     case 'record': return record(atlasDir(positional[positional.length - 1] ?? '.'), opts)
@@ -620,6 +701,10 @@ async function main() {
     case 'get': {
       const { dirArg, rest } = splitPos(positional)
       return get(atlasDir(dirArg), { _id: opts.id || rest[0] })
+    }
+    case 'update': {
+      const { dirArg, rest } = splitPos(positional)
+      return update(atlasDir(dirArg), { _id: opts.id || rest[0], status: opts.status, summary: opts.summary, tags: opts.tags })
     }
     case 'recent': return recent(atlasDir(positional[positional.length - 1] ?? '.'), opts)
     case 'stat': return stat(atlasDir(positional[positional.length - 1] ?? '.'))

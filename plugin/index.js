@@ -23,6 +23,12 @@ node <atlas> get ID
 node <atlas> record --id TASK-003 --type task --status done --tags a,b --summary "max 140 char" --conn "BUG-001:fixes,DEC-002:led_to"
 node <atlas> record --id REQ-001 --type requirement --status active --tags core --summary "..." --conn "FEAT-001:relates" --file nodes/REQ-001.md
 
+## Bisnis — Atlas paham produknya juga. Track perubahan bisnis.
+node <atlas> record --id BUS-001 --type business --status active --tags biz,model --summary "keadaan bisnis sekarang" --conn "DEC-002:relates"
+# bisnis berubah? archive yang lama, record yang baru (chain led_to = timeline)
+node <atlas> update BUS-001 --status archived
+node <atlas> record --id BUS-002 --type business --status active --tags biz,model --summary "keadaan baru" --conn "BUS-001:led_to"
+
 ## Limits (dienforce oleh check)
 - summary <= 140 chars
 - node detail file <= 200 lines
@@ -38,10 +44,10 @@ const RULES = `# Atlas Rules
 
 - Every fact = one node. No orphan nodes: each node has >= 1 conn edge.
 - Modular: nodes live in index.{n}.json shards (auto-split at 300 default; ATLAS_MAX_SHARD overrides). id_map.json maps id -> shard; tags_index.json maps tag -> [{id, shard}].
-- Never read atlas/*.json raw. Use the CLI: query, recent, get, record.
+- Never read atlas/*.json raw. Use the CLI: query, recent, get, record, update.
 - summary <= 140 chars. node files <= 200 lines.
 
-## Types: requirement, feature, task, bug, decision, positive, negative, edge, pitfall
+## Types: requirement, feature, task, bug, decision, business, positive, negative, edge, pitfall
 ## Status: active, done, fixed, open, archived
 ## Connections: fixes, caused, led_to, relates, blocks, depends, contradicts, example_of, implements, satisfies
 `
