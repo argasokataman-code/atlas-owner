@@ -473,6 +473,26 @@
           "raw": "BUG-003:fixes"
         }
       ]
+    },
+    {
+      "id": "PF-002",
+      "type": "pitfall",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "21:15:34",
+      "tags": [
+        "scan",
+        "auto",
+        "noise"
+      ],
+      "summary": "scan depth-2 + auto-record bash di repo besar (TDrive) = 103 node junk #scan/#auto. TDrive: hapus junk, record manual per topik",
+      "conn": [
+        {
+          "id": "FEAT-013",
+          "type": "relates",
+          "raw": "FEAT-013:relates"
+        }
+      ]
     }
   ]
 }
