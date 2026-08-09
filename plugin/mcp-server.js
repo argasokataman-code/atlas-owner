@@ -41,16 +41,25 @@ async function handle(method, params, id) {
       return reply(id, { tools })
     }
     if (method === 'tools/call') {
-      const { name, arguments: args } = params
-      const dir = parsePath(args?.dir)
+      const { name, arguments: args = {} } = params
+      const dir = parsePath(args.dir)
       const a = ['node', 'atlas']
       if (name === 'atlas_query') a.push('query', args.q || '', ...(args.tags ? ['--tags', args.tags] : []), ...(args.limit ? ['--limit', String(args.limit)] : []), dir)
-      if (name === 'atlas_get') a.push('get', args.id, dir)
+      if (name === 'atlas_get') {
+        if (!args.id) return reply(id, { content: [{ type: 'text', text: 'FAIL: atlas_get requires id' }], isError: true })
+        a.push('get', args.id, dir)
+      }
       if (name === 'atlas_recent') a.push('recent', ...(args.limit ? ['--limit', String(args.limit)] : []), dir)
       if (name === 'atlas_stat') a.push('stat', dir)
       if (name === 'atlas_scan') a.push('scan', dir, ...(args.target ? ['--target', args.target] : []), ...(args.depth ? ['--depth', String(args.depth)] : []))
-      if (name === 'atlas_record') a.push('record', ...(args.id ? ['--id', args.id] : []), '--type', args.type, '--status', args.status, ...(args.tags ? ['--tags', args.tags] : []), '--summary', args.summary, ...(args.conn ? ['--conn', args.conn] : []), dir)
-      if (name === 'atlas_update') a.push('update', args.id, ...(args.status ? ['--status', args.status] : []), ...(args.summary ? ['--summary', args.summary] : []), ...(args.tags ? ['--tags', args.tags] : []), dir)
+      if (name === 'atlas_record') {
+        if (!args.type || !args.status || !args.summary) return reply(id, { content: [{ type: 'text', text: 'FAIL: atlas_record requires type, status, summary' }], isError: true })
+        a.push('record', ...(args.id ? ['--id', args.id] : []), '--type', args.type, '--status', args.status, ...(args.tags ? ['--tags', args.tags] : []), '--summary', args.summary, ...(args.conn ? ['--conn', args.conn] : []), dir)
+      }
+      if (name === 'atlas_update') {
+        if (!args.id) return reply(id, { content: [{ type: 'text', text: 'FAIL: atlas_update requires id' }], isError: true })
+        a.push('update', args.id, ...(args.status ? ['--status', args.status] : []), ...(args.summary ? ['--summary', args.summary] : []), ...(args.tags ? ['--tags', args.tags] : []), dir)
+      }
       if (name === 'atlas_check') a.push('check', dir)
       const res = await runCmd(a)
       return reply(id, { content: [{ type: 'text', text: res.output }], isError: res.code !== 0 })

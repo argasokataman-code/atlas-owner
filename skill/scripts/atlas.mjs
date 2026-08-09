@@ -352,6 +352,13 @@ async function record(dir, opts) {
       ;(tagsIndex[t] ??= []).push({ id, shard: shardNum })
     }
     await saveTags(dir, tagsIndex)
+
+    // Copy the detail file into nodes/{ID}.md so `get` can show it. The file
+    // may live outside atlas/ (project root) but never outside the project.
+    if (filePath) {
+      await mkdir(join(dir, 'nodes'), { recursive: true })
+      await writeFile(join(dir, 'nodes', `${id}.md`), await readFile(filePath, 'utf8'))
+    }
     console.log(`recorded ${id} -> index.${shardNum}.json`)
   })
 }
