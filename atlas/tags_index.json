@@ -73,6 +73,40 @@
     {
       "id": "FEAT-012",
       "shard": 0
+    },
+    {
+      "id": "TASK-006",
+      "shard": 0
+    },
+    {
+      "id": "BUG-001",
+      "shard": 0
+    },
+    {
+      "id": "DEC-003",
+      "shard": 0
+    },
+    {
+      "id": "TASK-007",
+      "shard": 0
+    }
+  ],
+  "dedup": [
+    {
+      "id": "BUG-001",
+      "shard": 0
+    }
+  ],
+  "ops": [
+    {
+      "id": "DEC-003",
+      "shard": 0
+    }
+  ],
+  "eval": [
+    {
+      "id": "TASK-007",
+      "shard": 0
     }
   ]
 }

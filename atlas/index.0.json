@@ -301,6 +301,80 @@
           "type": "relates"
         }
       ]
+    },
+    {
+      "id": "TASK-006",
+      "type": "task",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:31:08",
+      "tags": [
+        "scan"
+      ],
+      "summary": "skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "FEAT-007",
+          "type": "relates"
+        }
+      ]
+    },
+    {
+      "id": "BUG-001",
+      "type": "bug",
+      "status": "done",
+      "date": "2026-08-09",
+      "time": "20:31:50",
+      "tags": [
+        "scan",
+        "dedup"
+      ],
+      "summary": "scan dupe ingest nodes: reconcile cuma #scan, fix: match all nodes",
+      "conn": [
+        {
+          "id": "TASK-004",
+          "type": "fixes",
+          "raw": "TASK-004:fixes"
+        }
+      ]
+    },
+    {
+      "id": "DEC-003",
+      "type": "decision",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:31:50",
+      "tags": [
+        "scan",
+        "ops"
+      ],
+      "summary": "repo nested (skill/scripts/) butuh --depth 3, depth 2 skip file dalam-dalam",
+      "conn": [
+        {
+          "id": "FEAT-008",
+          "type": "relates",
+          "raw": "FEAT-008:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-007",
+      "type": "task",
+      "status": "done",
+      "date": "2026-08-09",
+      "time": "20:31:50",
+      "tags": [
+        "eval",
+        "scan"
+      ],
+      "summary": "audit kelengkapan scan repo atlas: semua 9 file ter-map setelah depth 3",
+      "conn": [
+        {
+          "id": "TASK-006",
+          "type": "relates",
+          "raw": "TASK-006:relates"
+        }
+      ]
     }
   ]
 }
