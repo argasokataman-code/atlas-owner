@@ -22,7 +22,7 @@
 //
 // Token rule: AI must call `atlas query/get`, never read atlas/*.json raw.
 import { open, mkdir, readFile, writeFile, readdir, rm, stat as statFile } from 'node:fs/promises'
-import { existsSync } from 'node:fs'
+import { existsSync, realpathSync } from 'node:fs'
 import { dirname, join, resolve, sep, relative } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -816,7 +816,14 @@ async function main(argv = process.argv) {
 }
 
 // Run only when invoked directly; when imported (MCP server) skip auto-run.
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+// realpathSync: argv may be a symlink (e.g. ~/.config/opencode/skills/atlas-owner)
+// while import.meta.url is always the realpath — compare resolved paths.
+const invokedMain = (() => {
+  try {
+    return pathToFileURL(realpathSync(process.argv[1])).href === import.meta.url
+  } catch { return false }
+})()
+if (invokedMain) {
   main().catch((e) => { console.error(e); process.exitCode = 1 })
 }
 
