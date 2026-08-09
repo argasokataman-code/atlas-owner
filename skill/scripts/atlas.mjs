@@ -45,6 +45,10 @@ const PROTOCOL = `# Atlas Protocol
 
 Graph memory for Product Owner behavior. Read before work, follow after work.
 
+## Skill — load otomatis
+Kalau skill "atlas-owner" tersedia, load dulu (skill({ name: "atlas-owner" }))
+sebelum pakai atlas — itu berisi aturan lengkap PO behavior + protocol.
+
 ## Retrieval — pakai MCP tools kalau ada (atlas_query/atlas_get/...), selain itu CLI:
 node <atlas> query "keywords" [--tags a,b] [--limit 5]
 node <atlas> recent [--limit 10]    # node terbaru
