@@ -49,6 +49,11 @@ Graph memory for Product Owner behavior. Read before work, follow after work.
 Kalau skill "atlas-owner" tersedia, load dulu (skill({ name: "atlas-owner" }))
 sebelum pakai atlas — itu berisi aturan lengkap PO behavior + protocol.
 
+## Pertama kali di project — scan dulu
+Kalau atlas/ baru dibuat (atau query kosong), jalankan scan sekali buat peta
+struktur repo, baru kerja:
+node <atlas> scan [--depth 2]
+
 ## Retrieval — pakai MCP tools kalau ada (atlas_query/atlas_get/...), selain itu CLI:
 node <atlas> query "keywords" [--tags a,b] [--limit 5]
 node <atlas> recent [--limit 10]    # node terbaru
