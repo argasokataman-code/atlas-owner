@@ -375,6 +375,45 @@
           "raw": "TASK-006:relates"
         }
       ]
+    },
+    {
+      "id": "BUG-002",
+      "type": "bug",
+      "status": "done",
+      "date": "2026-08-09",
+      "time": "21:02:04",
+      "tags": [
+        "setup",
+        "mcp",
+        "path"
+      ],
+      "summary": "atlas setup dr skill copy nulis path plugin/mcp ke skills/ gak exist (../../ salah dari copy). Fix: findPkgRoot() walk up package.json",
+      "conn": [
+        {
+          "id": "TASK-004",
+          "type": "fixes",
+          "raw": "TASK-004:fixes"
+        }
+      ]
+    },
+    {
+      "id": "FEAT-013",
+      "type": "feature",
+      "status": "done",
+      "date": "2026-08-09",
+      "time": "21:02:04",
+      "tags": [
+        "doctor",
+        "versions"
+      ],
+      "summary": "atlas doctor: cek versi CLI/global/skill/MCP vs npm latest + perintah fix",
+      "conn": [
+        {
+          "id": "BUG-002",
+          "type": "led_to",
+          "raw": "BUG-002:led_to"
+        }
+      ]
     }
   ]
 }

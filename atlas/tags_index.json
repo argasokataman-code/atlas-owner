@@ -108,5 +108,35 @@
       "id": "TASK-007",
       "shard": 0
     }
+  ],
+  "setup": [
+    {
+      "id": "BUG-002",
+      "shard": 0
+    }
+  ],
+  "mcp": [
+    {
+      "id": "BUG-002",
+      "shard": 0
+    }
+  ],
+  "path": [
+    {
+      "id": "BUG-002",
+      "shard": 0
+    }
+  ],
+  "doctor": [
+    {
+      "id": "FEAT-013",
+      "shard": 0
+    }
+  ],
+  "versions": [
+    {
+      "id": "FEAT-013",
+      "shard": 0
+    }
   ]
 }
