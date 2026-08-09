@@ -7,18 +7,20 @@
 //   "plugin": ["/abs/path/to/atlas-owner/plugin/index.js"]
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 // ponytail: duplicated with skill/scripts/atlas.mjs PROTOCOL. Keep in sync.
 const PROTOCOL = `# Atlas Protocol
 
 Graph memory for Product Owner behavior. Read before work, follow after work.
 
-## Retrieval — Wajib lewat CLI. JANGAN baca atlas/*.json langsung.
+## Retrieval — pakai MCP tools kalau ada (atlas_query/atlas_get/...), selain itu CLI:
 node <atlas> query "keywords" [--tags a,b] [--limit 5]
 node <atlas> recent [--limit 10]    # node terbaru
 node <atlas> get ID
 node <atlas> scan [--depth 2]       # map struktur repo (code-walk, idempotent)
+# <atlas> diisi path absolut ke atlas.mjs oleh installer — jangan diganti manual.
 
 ## Record — tiap kerja signifikan, langsung di command yang sama.
 node <atlas> record --id TASK-003 --type task --status done --tags a,b --summary "max 140 char" --conn "BUG-001:fixes,DEC-002:led_to"
@@ -84,6 +86,9 @@ export default async ({ directory }) => {
   const proto = join(atlas, 'PROTOCOL.md')
   const hasAtlas = existsSync(join(atlas, 'manifest.json'))
   const hasLegacy = existsSync(join(root, 'memory'))
+  // <atlas> placeholder in PROTOCOL -> real path to atlas.mjs (this plugin's sibling).
+  const cliPath = fileURLToPath(new URL('../skill/scripts/atlas.mjs', import.meta.url))
+  const protocolText = PROTOCOL.replaceAll('<atlas>', cliPath)
 
   if (!hasAtlas && !hasLegacy) {
     mkdirSync(join(atlas, 'nodes'), { recursive: true })
@@ -114,13 +119,13 @@ export default async ({ directory }) => {
         if (e.code !== 'EEXIST') throw e
       }
     }
-    writeFileSync(proto, PROTOCOL)
+    writeFileSync(proto, protocolText)
     writeFileSync(join(atlas, 'rules.md'), RULES)
     writeFileSync(join(atlas, 'README.md'), README)
     console.log('[atlas-owner] scaffolded atlas/ graph memory (modular shards)')
   } else if (hasAtlas && !existsSync(proto)) {
     // Repair: atlas/ exists but protocol was lost. Only inject paths that exist.
-    writeFileSync(proto, PROTOCOL)
+    writeFileSync(proto, protocolText)
   }
 
   return {

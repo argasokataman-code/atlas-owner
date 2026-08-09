@@ -24,7 +24,7 @@
 import { open, mkdir, readFile, writeFile, readdir, rm, stat as statFile } from 'node:fs/promises'
 import { existsSync, realpathSync } from 'node:fs'
 import { dirname, join, resolve, sep, relative } from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const TYPES = ['requirement', 'feature', 'task', 'bug', 'decision', 'business', 'positive', 'negative', 'edge', 'pitfall']
 const CONN_TYPES = ['fixes', 'caused', 'led_to', 'relates', 'blocks', 'depends', 'contradicts', 'example_of', 'implements', 'satisfies']
@@ -45,11 +45,12 @@ const PROTOCOL = `# Atlas Protocol
 
 Graph memory for Product Owner behavior. Read before work, follow after work.
 
-## Retrieval — Wajib lewat CLI. JANGAN baca atlas/*.json langsung.
+## Retrieval — pakai MCP tools kalau ada (atlas_query/atlas_get/...), selain itu CLI:
 node <atlas> query "keywords" [--tags a,b] [--limit 5]
 node <atlas> recent [--limit 10]    # node terbaru
 node <atlas> get ID
 node <atlas> scan [--depth 2]       # map struktur repo (code-walk, idempotent)
+# <atlas> diisi path absolut ke atlas.mjs oleh installer — jangan diganti manual.
 
 ## Record — tiap kerja signifikan, langsung di command yang sama.
 node <atlas> record --id TASK-003 --type task --status done --tags a,b --summary "max 140 char" --conn "BUG-001:fixes,DEC-002:led_to"
@@ -102,9 +103,10 @@ const README = `# Atlas — Product Owner Graph Memory
 `
 
 const usage = () => `Usage:
-  atlas init|record|query|get|update|recent|stat|scan|rebuild|check [dir]
+  atlas setup|init|record|query|get|update|recent|stat|scan|rebuild|check [dir]
 
 Commands:
+  setup       auto-install MCP + plugin ke opencode config (global)
   init        scaffold atlas/
   record      add node (--id --type --status --tags --summary --conn [--file])
   query       search ("keywords" [--tags a,b] [--limit N])
@@ -255,11 +257,45 @@ async function init(dir) {
   if (!existsSync(join(dir, 'index.0.json'))) await writeFile(join(dir, 'index.0.json'), JSON.stringify({ shard: 0, nodes: [] }, null, 2) + '\n')
   if (!existsSync(join(dir, 'tags_index.json'))) await saveTags(dir, {})
   if (!existsSync(join(dir, 'id_map.json'))) await saveIdMap(dir, {})
-  for (const [f, c] of [['PROTOCOL.md', PROTOCOL], ['rules.md', RULES], ['README.md', README]]) {
+  const cliPath = fileURLToPath(import.meta.url)
+  for (const [f, c] of [['PROTOCOL.md', PROTOCOL.replaceAll('<atlas>', cliPath)], ['rules.md', RULES], ['README.md', README]]) {
     if (!existsSync(join(dir, f))) await writeFile(join(dir, f), c)
   }
   console.log(`Atlas initialized at ${dir}`)
   await check(dir)
+}
+
+// Auto-install: register atlas MCP server + enforce plugin in the global
+// opencode config so a fresh session has both without manual editing.
+async function setup() {
+  const home = process.env.HOME || ''
+  const cfgPath = join(home, '.config', 'opencode', 'opencode.json')
+  const cfg = existsSync(cfgPath) ? (tryParseJson(await readFile(cfgPath, 'utf8')) || {}) : {}
+  const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
+  const pluginPath = join(root, 'plugin', 'index.js')
+  const mcpServerPath = join(root, 'plugin', 'mcp-server.js')
+  let changed = false
+
+  if (!Array.isArray(cfg.plugin)) cfg.plugin = []
+  if (!cfg.plugin.some((p) => p && p.includes('atlas-owner/plugin/index.js'))) {
+    cfg.plugin.push(pluginPath)
+    changed = true
+  }
+
+  if (!cfg.mcp) cfg.mcp = {}
+  const existing = cfg.mcp.atlas
+  const entry = { type: 'local', command: ['node', mcpServerPath], enabled: true }
+  const isSame = existing && existing.type === 'local'
+    && Array.isArray(existing.command) && existing.command[0] === 'node' && existing.command[1] === mcpServerPath
+  if (!isSame) {
+    cfg.mcp.atlas = entry
+    changed = true
+  }
+
+  await mkdir(dirname(cfgPath), { recursive: true })
+  await writeFile(cfgPath, JSON.stringify(cfg, null, 2) + '\n')
+  if (changed) console.log(`atlas installed into ${cfgPath}\n  plugin: ${pluginPath}\n  mcp:    ${mcpServerPath}\nRestart opencode for it to take effect.`)
+  else console.log(`atlas already installed in ${cfgPath} (no change)`)
 }
 
 function parseConn(raw) {
@@ -796,6 +832,7 @@ async function check(dir) {
 async function main(argv = process.argv) {
   const { cmd, opts, positional } = parseArgs(argv)
   switch (cmd) {
+    case 'setup': return setup()
     case 'init': return init(atlasDir(positional[positional.length - 1] ?? '.'))
     case 'record': return record(atlasDir(positional[positional.length - 1] ?? '.'), opts)
     case 'query': {

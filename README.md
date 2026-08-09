@@ -66,14 +66,14 @@ your-project/
 npm install -g atlas-owner
 ```
 
-Installs the CLI to PATH:
+Installs the CLI to PATH. One command wires up opencode (MCP server + enforce plugin) globally:
 
 ```bash
-atlas init /path/to/project
-atlas query "hreflang" /path/to/project
+atlas setup
+# restart opencode — atlas_query/atlas_get/... appear as MCP tools
 ```
 
-The plugin and MCP server live inside the package — point opencode at the installed paths instead of a repo clone:
+Or wire it manually — the plugin and MCP server live inside the package, point opencode at the installed paths instead of a repo clone:
 
 ```bash
 npm root -g   # e.g. /opt/homebrew/lib/node_modules
@@ -84,9 +84,9 @@ npm root -g   # e.g. /opt/homebrew/lib/node_modules
   "plugin": ["/opt/homebrew/lib/node_modules/atlas-owner/plugin/index.js"],
   "mcp": {
     "atlas": {
-      "type": "stdio",
-      "command": "node",
-      "args": ["/opt/homebrew/lib/node_modules/atlas-owner/plugin/mcp-server.js"]
+      "type": "local",
+      "command": ["node", "/opt/homebrew/lib/node_modules/atlas-owner/plugin/mcp-server.js"],
+      "enabled": true
     }
   }
 }
@@ -121,15 +121,15 @@ On project load the plugin:
 
 ### 3. MCP (fast in-process tools)
 
-Same commands as the CLI but exposed as MCP tools (`atlas_query`, `atlas_get`, `atlas_record`, `atlas_scan`, …). Add to `opencode.json`:
+Same commands as the CLI but exposed as MCP tools (`atlas_query`, `atlas_get`, `atlas_record`, `atlas_scan`, …). Add to `opencode.json` (or just run `atlas setup`):
 
 ```json
 {
   "mcp": {
     "atlas": {
-      "type": "stdio",
-      "command": "node",
-      "args": ["/abs/path/to/atlas-owner/plugin/mcp-server.js"]
+      "type": "local",
+      "command": ["node", "/abs/path/to/atlas-owner/plugin/mcp-server.js"],
+      "enabled": true
     }
   }
 }

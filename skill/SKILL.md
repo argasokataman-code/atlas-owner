@@ -156,15 +156,21 @@ If the project has an existing legacy `memory/` graph, the plugin leaves it unto
 
 ## MCP (fast in-process tools)
 
-The MCP server exposes the same commands as in-process tools — `atlas_query`, `atlas_get`, `atlas_recent`, `atlas_stat`, `atlas_scan`, `atlas_record`, `atlas_update`, `atlas_check`. One persistent node process, no per-call spawn: **~1ms/call vs ~50ms** for the CLI. Add to `opencode.json`:
+The MCP server exposes the same commands as in-process tools — `atlas_query`, `atlas_get`, `atlas_recent`, `atlas_stat`, `atlas_scan`, `atlas_record`, `atlas_update`, `atlas_check`. One persistent node process, no per-call spawn: **~1ms/call vs ~50ms** for the CLI. Install with one command:
+
+```bash
+atlas setup   # registers MCP server + plugin in ~/.config/opencode/opencode.json
+```
+
+Or add manually to `opencode.json`:
 
 ```json
 {
   "mcp": {
     "atlas": {
-      "type": "stdio",
-      "command": "node",
-      "args": ["<atlas-owner>/plugin/mcp-server.js"]
+      "type": "local",
+      "command": ["node", "<atlas-owner>/plugin/mcp-server.js"],
+      "enabled": true
     }
   }
 }
