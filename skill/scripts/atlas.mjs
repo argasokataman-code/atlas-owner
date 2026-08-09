@@ -22,7 +22,7 @@
 //
 // Token rule: AI must call `atlas query/get`, never read atlas/*.json raw.
 import { open, mkdir, readFile, writeFile, readdir, rm, stat as statFile } from 'node:fs/promises'
-import { existsSync, realpathSync } from 'node:fs'
+import { existsSync, readFileSync, realpathSync } from 'node:fs'
 import { dirname, join, resolve, sep, relative } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
@@ -1064,6 +1064,11 @@ async function check(dir) {
 
 async function main(argv = process.argv) {
   const { cmd, opts, positional } = parseArgs(argv)
+  if (cmd === '--version' || cmd === '-v') {
+    const pkgPath = fileURLToPath(new URL('../../package.json', import.meta.url))
+    try { console.log(JSON.parse(readFileSync(pkgPath, 'utf8')).version) } catch { console.log('unknown') }
+    return
+  }
   switch (cmd) {
     case 'setup': return setup()
     case 'init': return init(atlasDir(positional[positional.length - 1] ?? '.'))
