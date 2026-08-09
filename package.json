@@ -29,5 +29,8 @@
   ],
   "engines": {
     "node": ">=18"
+  },
+  "scripts": {
+    "version": "node -e \"const fs=require('fs'),p='skill/scripts/atlas.mjs',v=process.env.npm_package_version;fs.writeFileSync(p,fs.readFileSync(p,'utf8').replace(/^const VERSION = '[^']*'/m,'const VERSION = \\''+v+'\\''))\""
   }
 }

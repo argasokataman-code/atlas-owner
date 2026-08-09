@@ -25,19 +25,23 @@ atlas/
 ## CLI (THE ONLY way to touch the graph)
 
 ```bash
-# <atlas> = path to skill/scripts/atlas.mjs (or `atlas` on PATH)
-
-node <atlas> init [dir]                                   # scaffold
-node <atlas> record --id TASK-003 --type task --status done \
+# <atlas> = path to atlas.mjs. Resolve ONCE, don't guess:
+#   1. command -v atlas            # npm global bin, if installed
+#   2. this skill's scripts/atlas.mjs   # skill copy (no skill/ subfolder)
+#   3. <repo>/skill/scripts/atlas.mjs   # repo checkout
+ATLAS=$(command -v atlas || echo "$HOME/.config/opencode/skills/atlas-owner/scripts/atlas.mjs")
+node "$ATLAS" init [dir]                                   # scaffold
+node "$ATLAS" record --id TASK-003 --type task --status done \
     --tags seo,router --summary "max 140 chars" \
     --conn "BUG-001:fixes,DEC-002:led_to" [--file nodes/TASK-003.md] [dir]
-node <atlas> query "keywords" [--tags a,b] [--limit 5] [dir]
-node <atlas> recent [--limit 10] [dir]                    # newest nodes
-node <atlas> get ID [dir]
-node <atlas> update ID --status archived [dir]            # change status/summary/tags
-node <atlas> stat [dir]                                   # one-line counts
-node <atlas> rebuild [dir]                                # fix id_map/tags drift
-node <atlas> check [dir]                                  # integrity + limits
+node "$ATLAS" query "keywords" [--tags a,b] [--limit 5] [dir]
+node "$ATLAS" recent [--limit 10] [dir]                    # newest nodes
+node "$ATLAS" get ID [dir]
+node "$ATLAS" update ID --status archived [dir]            # change status/summary/tags
+node "$ATLAS" stat [dir]                                   # one-line counts
+node "$ATLAS" rebuild [dir]                                # fix id_map/tags drift
+node "$ATLAS" doctor                                       # version drift check
+node "$ATLAS" check [dir]                                  # integrity + limits
 ```
 
 `--id` optional: auto-generated as `{PREFIX}-{NNN}` from `--type`. The first ever node (graph seed) is allowed to have no `--conn`; every later node needs ≥ 1 edge. IDs must match `{PREFIX}-{NNN}` (blocks path traversal).
@@ -145,12 +149,11 @@ Record a node in the SAME change that did the work (min 1 node per significant w
 
 ```bash
 # scaffold the graph in any project
-node <atlas-owner>/skill/scripts/atlas.mjs init /path/to/project
+ATLAS=$(command -v atlas || echo "$HOME/.config/opencode/skills/atlas-owner/scripts/atlas.mjs")
+node "$ATLAS" init /path/to/project
 # verify integrity + limits
-node <atlas-owner>/skill/scripts/atlas.mjs check /path/to/project
+node "$ATLAS" check /path/to/project
 ```
-
-`<atlas-owner>` = repo path (`~/Documents/Project/atlas-owner` locally) or the copied skill folder (`~/.config/opencode/skills/atlas-owner`). For convenience symlink to PATH: `ln -s <atlas-owner>/skill/scripts/atlas.mjs /usr/local/bin/atlas`.
 
 If the atlas-owner **plugin** is installed, `atlas/` scaffolds automatically on project load and `atlas/PROTOCOL.md` is injected into project instructions — no manual init needed.
 

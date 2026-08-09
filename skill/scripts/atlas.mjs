@@ -27,6 +27,10 @@ import { spawnSync } from 'node:child_process'
 import { dirname, join, resolve, sep, relative } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
+// Single source of truth for the CLI version. Keep in sync with
+// package.json — the preversion script updates it on `npm version`.
+const VERSION = '0.7.3'
+
 const TYPES = ['requirement', 'feature', 'task', 'bug', 'decision', 'business', 'positive', 'negative', 'edge', 'pitfall']
 const CONN_TYPES = ['fixes', 'caused', 'led_to', 'relates', 'blocks', 'depends', 'contradicts', 'example_of', 'implements', 'satisfies']
 const STATUSES = ['active', 'done', 'fixed', 'open', 'archived']
@@ -1151,9 +1155,14 @@ async function check(dir) {
 async function main(argv = process.argv) {
   const { cmd, opts, positional } = parseArgs(argv)
   if (cmd === '--version' || cmd === '-v') {
-    const root = findPkgRoot()
-    const pkgPath = join(root, 'package.json')
-    try { console.log(JSON.parse(readFileSync(pkgPath, 'utf8')).version) } catch { console.log('unknown') }
+    // Prefer the embedded VERSION (works even from a bare skill copy with no
+    // package.json); fall back to package.json if it disagrees.
+    try {
+      const root = findPkgRoot()
+      const pkgV = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version
+      if (pkgV && pkgV !== VERSION) { console.log(pkgV); return }
+    } catch { /* embedded VERSION below */ }
+    console.log(VERSION)
     return
   }
   switch (cmd) {
