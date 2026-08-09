@@ -15,7 +15,8 @@ Atlas is a persistent graph memory built for Product Owner behavior. Every fact 
 atlas/
 ├── manifest.json         # small meta: active_shard, node_count, seed_id
 ├── index.{n}.json        # node shards, auto-split at 300 nodes each
-├── tags_index.json       # tag -> [node ids]
+├── id_map.json           # id -> shard (O(1) get, dup/conn checks)
+├── tags_index.json       # tag -> [{id, shard}]
 ├── nodes/{ID}.md         # optional per-node detail (max 200 lines)
 ├── PROTOCOL.md           # retrieval rules (injected into context by plugin)
 └── rules.md              # node/edge format rules
@@ -31,11 +32,14 @@ node <atlas> record --id TASK-003 --type task --status done \
     --tags seo,router --summary "max 140 chars" \
     --conn "BUG-001:fixes,DEC-002:led_to" [--file nodes/TASK-003.md] [dir]
 node <atlas> query "keywords" [--tags a,b] [--limit 5] [dir]
+node <atlas> recent [--limit 10] [dir]                    # newest nodes
 node <atlas> get ID [dir]
+node <atlas> stat [dir]                                   # one-line counts
+node <atlas> rebuild [dir]                                # fix id_map/tags drift
 node <atlas> check [dir]                                  # integrity + limits
 ```
 
-`--id` optional: auto-generated as `{PREFIX}-{NNN}` from `--type`. The first ever node (graph seed) is allowed to have no `--conn`; every later node needs ≥ 1 edge.
+`--id` optional: auto-generated as `{PREFIX}-{NNN}` from `--type`. The first ever node (graph seed) is allowed to have no `--conn`; every later node needs ≥ 1 edge. IDs must match `{PREFIX}-{NNN}` (blocks path traversal).
 
 ## Token discipline (IMPORTANT)
 
@@ -55,7 +59,12 @@ The CLI reads the files internally and returns only what you asked for. On a 10k
 | node detail file | ≤ 200 lines | `record --file` + `check` |
 | nodes per shard | ≤ 300 | auto-split on `record`, checked |
 | conn | ≥ 1 edge (except seed) | `record` + `check` |
+| conn | no self-loop / duplicate | `record` + `check` |
+| id | `{PREFIX}-{NNN}` format | `record` + `get` + `check` |
+| id_map / tags_index / node_count | no drift | `check` (fix: `rebuild`) |
 | duplicate id / broken edge / stale tags | — | `check` |
+
+Corrupt shard: `query`/`get`/`recent`/`stat` skip it with a WARN; `check` reports it. Writes are serialized by a lock file, so concurrent AIs can't lose each other's records.
 
 Tuning: `ATLAS_MAX_SHARD=500` overrides the shard size.
 

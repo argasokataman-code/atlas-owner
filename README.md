@@ -24,7 +24,8 @@ your-project/
 └── atlas/
     ├── manifest.json         # active_shard, node_count, seed_id
     ├── index.{n}.json        # node shards (auto-split)
-    ├── tags_index.json       # tag -> node ids
+    ├── id_map.json           # id -> shard (O(1) get, dup/conn checks)
+    ├── tags_index.json       # tag -> [{id, shard}]
     ├── nodes/{ID}.md         # optional per-node detail
     ├── PROTOCOL.md           # always-in-context protocol
     └── rules.md
@@ -66,11 +67,14 @@ alias atlas='node /abs/path/to/atlas-owner/skill/scripts/atlas.mjs'
 atlas init /path/to/project
 atlas record --id BUG-001 --type bug --status fixed --tags seo,router --summary "hreflang duplikat" --conn "DEC-003:fixes" /path/to/project
 atlas query "hreflang" --limit 5 /path/to/project
+atlas recent /path/to/project
+atlas stat /path/to/project
 atlas get BUG-001 /path/to/project
+atlas rebuild /path/to/project
 atlas check /path/to/project
 ```
 
-`--id` is optional — auto-generated as `{PREFIX}-{NNN}` from `--type`. First node (graph seed) may omit `--conn`; later nodes need ≥ 1 edge.
+`--id` is optional — auto-generated as `{PREFIX}-{NNN}` from `--type`. First node (graph seed) may omit `--conn`; later nodes need ≥ 1 edge. IDs must match `{PREFIX}-{NNN}` (blocks path traversal).
 
 Tuning shard size: `ATLAS_MAX_SHARD=500 atlas record ...`
 
@@ -82,7 +86,12 @@ Tuning shard size: `ATLAS_MAX_SHARD=500 atlas record ...`
 | node detail file | ≤ 200 lines | `record --file` + `check` |
 | nodes per shard | ≤ 300 | auto-split on `record`, checked |
 | conn | ≥ 1 edge (except seed) | `record` + `check` |
+| conn | no self-loop / duplicate | `record` + `check` |
+| id | `{PREFIX}-{NNN}` format | `record` + `get` + `check` |
+| id_map / tags_index / node_count | no drift | `check` (fix: `rebuild`) |
 | duplicates / broken edges / stale tags | — | `check` |
+
+Corrupt shards are skipped with a WARN by `query`/`get`/`recent`/`stat` and flagged by `check`. Writes are serialized by a lock file (stale locks auto-stolen after 5s), so concurrent AIs can't lose each other's records.
 
 ## Node types
 

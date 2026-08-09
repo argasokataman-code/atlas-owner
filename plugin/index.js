@@ -16,6 +16,7 @@ Graph memory for Product Owner behavior. Read before work, follow after work.
 
 ## Retrieval — Wajib lewat CLI. JANGAN baca atlas/*.json langsung.
 node <atlas> query "keywords" [--tags a,b] [--limit 5]
+node <atlas> recent [--limit 10]    # node terbaru
 node <atlas> get ID
 
 ## Record — tiap kerja signifikan, langsung di command yang sama.
@@ -36,8 +37,8 @@ via \`atlas query\` before proposing requirements, features, or changes.
 const RULES = `# Atlas Rules
 
 - Every fact = one node. No orphan nodes: each node has >= 1 conn edge.
-- Modular: nodes live in index.{n}.json shards (auto-split at 300 default; ATLAS_MAX_SHARD overrides). tags_index.json maps tag -> ids.
-- Never read atlas/*.json raw. Use the CLI: query, get, record.
+- Modular: nodes live in index.{n}.json shards (auto-split at 300 default; ATLAS_MAX_SHARD overrides). id_map.json maps id -> shard; tags_index.json maps tag -> [{id, shard}].
+- Never read atlas/*.json raw. Use the CLI: query, recent, get, record.
 - summary <= 140 chars. node files <= 200 lines.
 
 ## Types: requirement, feature, task, bug, decision, positive, negative, edge, pitfall
@@ -47,8 +48,8 @@ const RULES = `# Atlas Rules
 
 const README = `# Atlas — Product Owner Graph Memory
 
-- manifest.json + index.{n}.json (shards) + tags_index.json + nodes/*.md
-- Read via CLI (query/get/record), never raw JSON.
+- manifest.json + index.{n}.json (shards) + id_map.json + tags_index.json + nodes/*.md
+- Read via CLI (query/recent/get/record), never raw JSON.
 - Record every significant requirement, feature, decision, bug, task, gotcha.
 `
 
@@ -88,6 +89,7 @@ export default async ({ directory }) => {
       ['manifest.json', manifest],
       ['index.0.json', shard],
       ['tags_index.json', '{}\n'],
+      ['id_map.json', '{}\n'],
     ]) {
       try {
         writeFileSync(join(atlas, f), c, { flag: 'wx' })
