@@ -60,6 +60,38 @@ your-project/
 
 ## Install
 
+### 0. npm (recommended)
+
+```bash
+npm install -g atlas-owner
+```
+
+Installs the CLI to PATH:
+
+```bash
+atlas init /path/to/project
+atlas query "hreflang" /path/to/project
+```
+
+The plugin and MCP server live inside the package — point opencode at the installed paths instead of a repo clone:
+
+```bash
+npm root -g   # e.g. /opt/homebrew/lib/node_modules
+```
+
+```json
+{
+  "plugin": ["/opt/homebrew/lib/node_modules/atlas-owner/plugin/index.js"],
+  "mcp": {
+    "atlas": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/opt/homebrew/lib/node_modules/atlas-owner/plugin/mcp-server.js"]
+    }
+  }
+}
+```
+
 ### 1. Skill (instructions)
 
 ```bash
