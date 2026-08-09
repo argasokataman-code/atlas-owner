@@ -81,6 +81,14 @@ const RULES = `# Atlas Rules
 ## Types: ${TYPES.join(', ')}
 ## Status: ${STATUSES.join(', ')}
 ## Connections: ${CONN_TYPES.join(', ')}
+
+## Classification — choose one type:
+- business: market/pricing/value-proposition state
+- decision: a choice made (with reason)
+- positive/negative: what worked / what failed
+- edge: boundary case worth remembering
+- pitfall: a trap to avoid (not just a failure)
+- requirement/feature/task/bug: standard dev backlog
 `
 
 const README = `# Atlas — Product Owner Graph Memory

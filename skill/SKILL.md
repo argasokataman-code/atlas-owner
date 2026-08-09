@@ -92,6 +92,15 @@ Tuning: `ATLAS_MAX_SHARD=500` overrides the shard size.
 
 `fixes` · `caused` · `led_to` · `relates` · `blocks` · `depends` · `contradicts` · `example_of` · `implements` · `satisfies`
 
+## Classification — choose one type
+
+- `business`: market/pricing/value-proposition state
+- `decision`: a choice made (with reason)
+- `positive`/`negative`: what worked / what failed
+- `edge`: boundary case worth remembering
+- `pitfall`: a trap to avoid (not just a failure)
+- `requirement`/`feature`/`task`/`bug`: standard dev backlog
+
 ## Node shape (inside shards)
 
 ```json
