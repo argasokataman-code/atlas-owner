@@ -29,7 +29,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 // Single source of truth for the CLI version. Keep in sync with
 // package.json — the preversion script updates it on `npm version`.
-const VERSION = '0.7.3'
+const VERSION = '0.7.4'
 
 const TYPES = ['requirement', 'feature', 'task', 'bug', 'decision', 'business', 'positive', 'negative', 'edge', 'pitfall']
 const CONN_TYPES = ['fixes', 'caused', 'led_to', 'relates', 'blocks', 'depends', 'contradicts', 'example_of', 'implements', 'satisfies']
