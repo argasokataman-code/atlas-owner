@@ -5,10 +5,11 @@
 //
 // Install: add to opencode.json "plugin" array, e.g.
 //   "plugin": ["/abs/path/to/atlas-owner/plugin/index.js"]
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { runCmd } from '../skill/scripts/atlas.mjs'
 
 // ponytail: duplicated with skill/scripts/atlas.mjs PROTOCOL. Keep in sync.
 const PROTOCOL = `# Atlas Protocol
@@ -41,6 +42,8 @@ Kerja besar (banyak file)? Pecah jadi beberapa node per fitur/keputusan.
 Keputusan arsitektur/kerangka -> type decision. Ketemu bug -> bug.
 Bisnis berubah -> business + archive yang lama (led_to chain).
 Ragu antara 2 tipe -> tanya user, jangan nebak.
+# Plugin juga auto-record node tag "auto" setelah edit/bash — boleh kamu rapiin
+# jadi tipe/summary yang tepat lewat update.
 
 ## Bisnis — Atlas paham produknya juga. Track perubahan bisnis.
 node <atlas> record --id BUS-001 --type business --status active --tags biz,model --summary "keadaan bisnis sekarang" --conn "DEC-002:relates"
@@ -153,5 +156,39 @@ export default async ({ directory }) => {
         cfg.instructions = instructions
       }
     },
+    // Enforce: after the AI edits/writes files or runs a command, auto-record a
+    // task node so memory updates even when the model forgets to. One node per
+    // edit path per minute — no spam.
+    'tool.execute.after': async (input) => {
+      if (hasLegacy || !existsSync(join(atlas, 'manifest.json'))) return
+      const { tool, args } = input
+      if (tool !== 'edit' && tool !== 'write' && tool !== 'bash') return
+      const target = args?.filePath || args?.path || args?.command || ''
+      if (!target) return
+      const key = `${new Date().toISOString().slice(0, 16)}|${target}` // ~1/min bucket
+      if (lastRecorded[key]) return
+      lastRecorded[key] = true
+      const summary = tool === 'bash'
+        ? `auto: ran ${target.slice(0, 80)}`
+        : `auto: edited ${target}`
+      // Anchor to an existing node so the graph stays connected; empty graph
+      // (no id_map) falls through and the first node becomes the seed.
+      let anchor = ''
+      try {
+        const mapFile = join(atlas, 'id_map.json')
+        if (existsSync(mapFile)) {
+          const map = JSON.parse(readFileSync(mapFile, 'utf8'))
+          anchor = Object.keys(map)[0] || ''
+        }
+      } catch { /* no anchor */ }
+      try {
+        await runCmd(['node', 'atlas', 'record', '--type', 'task', '--status', 'done',
+          '--tags', 'auto', '--summary', summary.slice(0, 140),
+          ...(anchor ? ['--conn', `${anchor}:relates`] : []), root])
+      } catch { /* memory write is best-effort */ }
+    },
   }
 }
+
+// Keeps auto-record from firing repeatedly for the same edit in one minute.
+const lastRecorded = {}

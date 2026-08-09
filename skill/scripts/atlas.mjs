@@ -71,6 +71,8 @@ Kerja besar (banyak file)? Pecah jadi beberapa node per fitur/keputusan.
 Keputusan arsitektur/kerangka -> type decision. Ketemu bug -> bug.
 Bisnis berubah -> business + archive yang lama (led_to chain).
 Ragu antara 2 tipe -> tanya user, jangan nebak.
+# Plugin juga auto-record node tag "auto" setelah edit/bash — boleh kamu rapiin
+# jadi tipe/summary yang tepat lewat update.
 
 ## Bisnis — Atlas paham produknya juga. Track perubahan bisnis.
 node <atlas> record --id BUS-001 --type business --status active --tags biz,model --summary "keadaan bisnis sekarang" --conn "DEC-002:relates"
