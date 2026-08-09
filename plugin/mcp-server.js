@@ -10,7 +10,18 @@
 //   "mcp": { "atlas": { "type": "stdio", "command": "node", "args": ["<repo>/plugin/mcp-server.js"] } }
 //
 // Uses <repo>/skill/scripts/atlas.mjs via runCmd (no per-call process spawn).
+import { readFileSync } from 'node:fs'
 import { runCmd } from '../skill/scripts/atlas.mjs'
+
+// --version / -v: print package version and exit (mirrors the CLI). Without
+// this the server would sit silent waiting on stdin, which looks hung.
+if (process.argv.includes('--version') || process.argv.includes('-v')) {
+  try {
+    const p = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
+    console.log(p.version)
+  } catch { console.log('unknown') }
+  process.exit(0)
+}
 
 let buf = ''
 const pending = new Map()
