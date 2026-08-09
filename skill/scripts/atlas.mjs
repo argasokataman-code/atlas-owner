@@ -159,9 +159,10 @@ function parseArgs(argv) {
 
 const atlasDir = (p) => join(resolve(p), 'atlas')
 
-// Resolve a node file path given in any of: cwd-relative, atlas-relative, project-relative.
+// Resolve a node file path. Project-relative first (so a file inside the
+// project wins over a same-named file in CWD), then atlas-relative, then cwd.
 function resolveNodeFile(dir, p) {
-  const cands = [resolve(p), join(dir, p), join(dirname(dir), p)]
+  const cands = [join(dirname(dir), p), join(dir, p), resolve(p)]
   return cands.find((c) => existsSync(c)) ?? null
 }
 
@@ -310,8 +311,10 @@ async function setup() {
 function parseConn(raw) {
   if (!raw) return []
   return String(raw).split(',').map((s) => s.trim()).filter(Boolean).map((s) => {
-    const [id, type] = s.split(':')
-    return { id: id.trim(), type: (type || 'relates').trim() }
+    const parts = s.split(':')
+    const id = (parts[0] || '').trim()
+    const type = ((parts[1] || 'relates').trim() || 'relates').trim()
+    return { id, type, raw: s }
   })
 }
 
@@ -333,8 +336,8 @@ async function record(dir, opts) {
   if (!TYPES.includes(opts.type)) { fail(`FAIL: invalid --type "${opts.type}". Valid: ${TYPES.join(', ')}`); return }
   if (!STATUSES.includes(opts.status)) { fail(`FAIL: invalid --status "${opts.status}". Valid: ${STATUSES.join(', ')}`); return }
   const summary = opts.summary
-  if (!summary) { fail('FAIL: --summary required'); return }
-  const tags = opts.tags ? opts.tags.split(',').map((t) => t.trim()).filter(Boolean) : []
+  if (!summary || !summary.trim()) { fail('FAIL: --summary required (non-empty)'); return }
+  const tags = opts.tags ? [...new Set(opts.tags.split(',').map((t) => t.trim()).filter(Boolean))] : []
   const conn = parseConn(opts.conn)
   // Over-long summary: don't drop it. Store the full text in nodes/{ID}.md and
   // keep a truncated summary in the node so nothing is lost.
@@ -347,7 +350,8 @@ async function record(dir, opts) {
     // Trust boundary: the detail file must stay inside the project root.
     const root = resolve(dirname(dir)) + sep
     if (!filePath.startsWith(root)) { fail(`FAIL: --file outside project: ${opts.file}`); return }
-    const lines = (await readFile(filePath, 'utf8')).split('\n').length
+    const text = await readFile(filePath, 'utf8')
+    const lines = text.trimEnd().split('\n').length
     if (lines > LIMITS.MAX_MD_LINES) { fail(`FAIL: node file ${lines} lines > limit ${LIMITS.MAX_MD_LINES}`); return }
   }
 
@@ -371,6 +375,8 @@ async function record(dir, opts) {
     if (conn.length === 0 && !emptyGraph) { fail('FAIL: --conn required (>= 1 edge). Format: ID:type,ID:type'); return }
     const seen = new Set()
     for (const c of conn) {
+      if (c.raw && c.raw.split(':').length > 2) { fail(`FAIL: --conn format invalid "${c.raw}" (expected ID:type)`); return }
+      if (!isValidId(c.id)) { fail(`FAIL: --conn id invalid "${c.id}" (expected e.g. BUG-001)`); return }
       if (c.id === id) { fail(`FAIL: --conn self-loop ${c.id} -> itself`); return }
       if (!CONN_TYPES.includes(c.type)) { fail(`FAIL: --conn type "${c.type}" invalid`); return }
       const exists = idMap ? idMap[c.id] !== undefined : (await scanNodes()).some((n) => n.id === c.id)
@@ -840,7 +846,7 @@ async function check(dir) {
     if (!ids.has(id)) errors.push(`node file ${f}: id not in index`)
     const st = await statFile(join(dir, 'nodes', f))
     if (st.size === 0) continue
-    const lines = (await readFile(join(dir, 'nodes', f), 'utf8')).split('\n').length
+    const lines = (await readFile(join(dir, 'nodes', f), 'utf8')).trimEnd().split('\n').length
     if (lines > LIMITS.MAX_MD_LINES) errors.push(`${f}: ${lines} lines > ${LIMITS.MAX_MD_LINES}`)
   }
 
