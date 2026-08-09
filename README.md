@@ -13,8 +13,9 @@ Persistent graph memory for any project, any AI. The AI remembers requirements, 
 ```
 atlas-owner/
 ├── skill/SKILL.md            # opencode skill (PO behavior + protocol)
-├── skill/scripts/atlas.mjs   # CLI: init / record / query / get / check
-└── plugin/index.js           # opencode enforce plugin (auto-init + protocol injection)
+├── skill/scripts/atlas.mjs   # CLI: init / record / query / get / check / scan
+├── plugin/index.js           # opencode enforce plugin (auto-init + protocol injection)
+└── plugin/mcp-server.js      # MCP server: same commands as in-process tools (~1ms/call)
 ```
 
 Installed into a project it creates:
@@ -52,6 +53,24 @@ Add to `~/.config/opencode/opencode.json` (or project `opencode.json`):
 }
 ```
 
+### 3. MCP (fast in-process tools)
+
+Same commands as the CLI but exposed as MCP tools (`atlas_query`, `atlas_get`, `atlas_record`, `atlas_scan`, …). The server keeps one node process alive and runs commands in-process (**~1ms/call vs ~50ms** for the CLI, which spawns node each time). Add to `opencode.json`:
+
+```json
+{
+  "mcp": {
+    "atlas": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/abs/path/to/atlas-owner/plugin/mcp-server.js"]
+    }
+  }
+}
+```
+
+Runs alongside the plugin (plugin scaffolds + injects PROTOCOL; MCP is what the agent calls).
+
 On project load the plugin:
 
 - scaffolds `atlas/` automatically if neither `atlas/` nor legacy `memory/` exists,
@@ -60,7 +79,7 @@ On project load the plugin:
 - never touches legacy `memory/` folders,
 - never scaffolds into `$HOME`.
 
-### 3. CLI (any project)
+### 4. CLI (any project)
 
 ```bash
 alias atlas='node /abs/path/to/atlas-owner/skill/scripts/atlas.mjs'

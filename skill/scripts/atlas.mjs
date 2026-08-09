@@ -24,6 +24,7 @@
 import { open, mkdir, readFile, writeFile, readdir, rm, stat as statFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { dirname, join, resolve, sep, relative } from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 const TYPES = ['requirement', 'feature', 'task', 'bug', 'decision', 'business', 'positive', 'negative', 'edge', 'pitfall']
 const CONN_TYPES = ['fixes', 'caused', 'led_to', 'relates', 'blocks', 'depends', 'contradicts', 'example_of', 'implements', 'satisfies']
@@ -811,4 +812,29 @@ async function main(argv = process.argv) {
   }
 }
 
-main().catch((e) => { console.error(e); process.exitCode = 1 })
+// Run only when invoked directly; when imported (MCP server) skip auto-run.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((e) => { console.error(e); process.exitCode = 1 })
+}
+
+// In-process runner for the MCP server: executes a command, captures output.
+export async function runCmd(argv) {
+  const logs = []
+  const origLog = console.log
+  const origErr = console.error
+  console.log = (...a) => logs.push(a.join(' '))
+  console.error = (...a) => logs.push(a.join(' '))
+  const origCode = process.exitCode
+  process.exitCode = 0
+  try {
+    await main(argv)
+  } catch (e) {
+    logs.push(String(e && e.stack || e))
+    process.exitCode = 1
+  }
+  const code = process.exitCode
+  process.exitCode = origCode
+  console.log = origLog
+  console.error = origErr
+  return { code, output: logs.join('\n') }
+}

@@ -154,6 +154,24 @@ If the atlas-owner **plugin** is installed, `atlas/` scaffolds automatically on 
 
 If the project has an existing legacy `memory/` graph, the plugin leaves it untouched — and skips PROTOCOL injection even if `atlas/` is also present.
 
+## MCP (fast in-process tools)
+
+The MCP server exposes the same commands as in-process tools — `atlas_query`, `atlas_get`, `atlas_recent`, `atlas_stat`, `atlas_scan`, `atlas_record`, `atlas_update`, `atlas_check`. One persistent node process, no per-call spawn: **~1ms/call vs ~50ms** for the CLI. Add to `opencode.json`:
+
+```json
+{
+  "mcp": {
+    "atlas": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["<atlas-owner>/plugin/mcp-server.js"]
+    }
+  }
+}
+```
+
+Works alongside the plugin: plugin scaffolds + injects PROTOCOL, MCP is what the agent calls during work. Both read/write the same `atlas/` graph.
+
 ## Sharing / distribution
 
 The whole repo (`skill/` + `plugin/`) is portable and zero-dependency. Copy to another machine, or publish as a git repo / npm package. `node` ships with the runtime.
