@@ -612,7 +612,17 @@ async function scan(dir, opts) {
         hits.push({ rel, type: 'feature', status: 'active', tags: ['scan'] })
         if (d < depth) await walk(join(p, e.name), d + 1)
       } else if (!SKIP_FILES.has(e.name)) {
-        hits.push({ rel, type: 'task', status: 'active', tags: ['scan'] })
+        const isMd = e.name.endsWith('.md')
+        // Docs already carry a title: read the first heading so the node is
+        // searchable by meaning (e.g. "PRD"), not just by path.
+        let desc = rel
+        if (isMd) {
+          try {
+            const head = (await readFile(join(p, e.name), 'utf8')).split('\n').find((l) => /^#\s/.test(l))
+            if (head) desc = `${rel} — ${head.replace(/^#\s*/, '').trim()}`
+          } catch { /* unreadable, keep path */ }
+        }
+        hits.push({ rel, type: isMd ? 'feature' : 'task', status: 'active', tags: ['scan'], desc })
       }
     }
   }
@@ -645,7 +655,7 @@ async function scan(dir, opts) {
       const conn = anchor
         ? [{ id: anchor, type: 'relates' }]
         : i === 0 ? [] : [{ id: firstId, type: 'relates' }]
-      const node = { id, type: h.type, status: h.status, date: today(), tags: h.tags, summary: h.rel.slice(0, LIMITS.MAX_SUMMARY_CHARS), conn }
+      const node = { id, type: h.type, status: h.status, date: today(), tags: h.tags, summary: (h.desc || h.rel).slice(0, LIMITS.MAX_SUMMARY_CHARS), conn }
       const shardNum = man.active_shard
       const shard = await loadShard(dir, shardNum)
       shard.nodes.push(node)
