@@ -131,6 +131,176 @@
           "type": "relates"
         }
       ]
+    },
+    {
+      "id": "FEAT-007",
+      "type": "feature",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:27:03",
+      "tags": [
+        "scan"
+      ],
+      "summary": "plugin",
+      "conn": [
+        {
+          "id": "FEAT-001",
+          "type": "relates"
+        }
+      ]
+    },
+    {
+      "id": "FEAT-008",
+      "type": "feature",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:27:03",
+      "tags": [
+        "scan"
+      ],
+      "summary": "skill",
+      "conn": [
+        {
+          "id": "FEAT-001",
+          "type": "relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-001",
+      "type": "task",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:27:03",
+      "tags": [
+        "scan"
+      ],
+      "summary": ".gitignore",
+      "conn": [
+        {
+          "id": "FEAT-001",
+          "type": "relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-002",
+      "type": "task",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:27:03",
+      "tags": [
+        "scan"
+      ],
+      "summary": "LICENSE",
+      "conn": [
+        {
+          "id": "FEAT-001",
+          "type": "relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-003",
+      "type": "task",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:27:03",
+      "tags": [
+        "scan"
+      ],
+      "summary": "package.json",
+      "conn": [
+        {
+          "id": "FEAT-001",
+          "type": "relates"
+        }
+      ]
+    },
+    {
+      "id": "FEAT-010",
+      "type": "feature",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:27:03",
+      "tags": [
+        "scan"
+      ],
+      "summary": "README.md — Atlas Owner — Product Owner Graph Memory",
+      "conn": [
+        {
+          "id": "FEAT-001",
+          "type": "relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-004",
+      "type": "task",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:27:56",
+      "tags": [
+        "scan"
+      ],
+      "summary": "plugin/index.js",
+      "conn": [
+        {
+          "id": "FEAT-007",
+          "type": "relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-005",
+      "type": "task",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:27:56",
+      "tags": [
+        "scan"
+      ],
+      "summary": "plugin/mcp-server.js",
+      "conn": [
+        {
+          "id": "FEAT-007",
+          "type": "relates"
+        }
+      ]
+    },
+    {
+      "id": "FEAT-011",
+      "type": "feature",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:27:56",
+      "tags": [
+        "scan"
+      ],
+      "summary": "skill/scripts",
+      "conn": [
+        {
+          "id": "FEAT-007",
+          "type": "relates"
+        }
+      ]
+    },
+    {
+      "id": "FEAT-012",
+      "type": "feature",
+      "status": "active",
+      "date": "2026-08-09",
+      "time": "20:27:56",
+      "tags": [
+        "scan"
+      ],
+      "summary": "skill/SKILL.md — Atlas Owner — Product Owner Graph Memory",
+      "conn": [
+        {
+          "id": "FEAT-007",
+          "type": "relates"
+        }
+      ]
     }
   ]
 }

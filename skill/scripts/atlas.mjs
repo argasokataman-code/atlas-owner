@@ -657,20 +657,20 @@ async function scan(dir, opts) {
 
   if (!hits.length) { console.log('scan: nothing to map'); return }
 
-  // Reconcile: existing scan nodes keyed by their path (summary may now
-  // include a heading). Match by the bare path portion so re-scans update
-  // nodes whose docs gained a heading instead of skipping them.
+  // Reconcile: match by bare path across ALL nodes so a file already mapped
+  // by ingest (tag #ingest) isn't re-created as a duplicate scan node. Only
+  // #scan nodes get their summary updated, so ingest summaries survive.
   const { nodes } = await allNodes(dir, manifest)
   const byPath = new Map()
   for (const n of nodes) {
-    if (!(n.tags || []).includes('scan')) continue
-    const key = (n.summary || '').split(' — ')[0]
-    byPath.set(key, n)
+    if (!n.summary) continue
+    const key = n.summary.split(' — ')[0]
+    if (!byPath.has(key)) byPath.set(key, n)
   }
   const fresh = hits.filter((h) => !byPath.has(h.rel))
   const dirty = hits.filter((h) => {
     const old = byPath.get(h.rel)
-    return old && old.summary !== (h.desc || h.rel).slice(0, LIMITS.MAX_SUMMARY_CHARS)
+    return old && (old.tags || []).includes('scan') && old.summary !== (h.desc || h.rel).slice(0, LIMITS.MAX_SUMMARY_CHARS)
   })
   if (!fresh.length && !dirty.length) { console.log(`scan: up to date (${byPath.size} paths already mapped)`); return }
 

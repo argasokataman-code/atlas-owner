@@ -32,5 +32,47 @@
       "id": "FEAT-006",
       "shard": 0
     }
+  ],
+  "scan": [
+    {
+      "id": "FEAT-007",
+      "shard": 0
+    },
+    {
+      "id": "FEAT-008",
+      "shard": 0
+    },
+    {
+      "id": "TASK-001",
+      "shard": 0
+    },
+    {
+      "id": "TASK-002",
+      "shard": 0
+    },
+    {
+      "id": "TASK-003",
+      "shard": 0
+    },
+    {
+      "id": "FEAT-010",
+      "shard": 0
+    },
+    {
+      "id": "TASK-004",
+      "shard": 0
+    },
+    {
+      "id": "TASK-005",
+      "shard": 0
+    },
+    {
+      "id": "FEAT-011",
+      "shard": 0
+    },
+    {
+      "id": "FEAT-012",
+      "shard": 0
+    }
   ]
 }
