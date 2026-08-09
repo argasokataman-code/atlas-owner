@@ -1,0 +1,15 @@
+{
+  "name": "atlas-owner",
+  "version": "0.2.0",
+  "description": "Product Owner graph memory for any project. Modular auto-sharded JSON graph + CLI (init/record/query/get/check) + opencode enforce plugin. Scales to 10k nodes, zero dependencies.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "atlas": "./skill/scripts/atlas.mjs"
+  },
+  "files": ["skill", "plugin", "AGENTS.md"],
+  "keywords": ["opencode", "skill", "plugin", "memory", "graph", "product-owner", "mcp", "claude"],
+  "engines": {
+    "node": ">=18"
+  }
+}

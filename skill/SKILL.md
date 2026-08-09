@@ -1,0 +1,133 @@
+---
+name: atlas-owner
+description: Product Owner graph memory for any project. Turns project knowledge (requirements, features, decisions, bugs, tasks, roadmap context) into a JSON-backed graph so the AI behaves like a PO who remembers everything. Use when the project has an `atlas/` folder or when the user says "atlas", "insinyur-atlas", "atlas-owner", "graph memory", "PO knowledge", "remember this for later", or asks the AI to recall past decisions, bugs, or feature context across sessions.
+---
+
+# Atlas Owner — Product Owner Graph Memory
+
+Atlas is a persistent graph memory built for Product Owner behavior. Every fact about a project (requirement, feature, decision, bug, task, gotcha) is one node. Nodes connect via typed edges. The graph lives in a plain `atlas/` folder, so it works in any project, any language, any AI that reads Markdown and JSON.
+
+**Scales to 10k+ nodes** because it is modular: nodes live in auto-split shards, and the AI never reads raw index files — it always talks through the CLI, so context cost stays proportional to what you retrieve, not to the whole graph.
+
+## Structure
+
+```
+atlas/
+├── manifest.json         # small meta: active_shard, node_count, seed_id
+├── index.{n}.json        # node shards, auto-split at 300 nodes each
+├── tags_index.json       # tag -> [node ids]
+├── nodes/{ID}.md         # optional per-node detail (max 200 lines)
+├── PROTOCOL.md           # retrieval rules (injected into context by plugin)
+└── rules.md              # node/edge format rules
+```
+
+## CLI (THE ONLY way to touch the graph)
+
+```bash
+# <atlas> = path to skill/scripts/atlas.mjs (or `atlas` on PATH)
+
+node <atlas> init [dir]                                   # scaffold
+node <atlas> record --id TASK-003 --type task --status done \
+    --tags seo,router --summary "max 140 chars" \
+    --conn "BUG-001:fixes,DEC-002:led_to" [--file nodes/TASK-003.md] [dir]
+node <atlas> query "keywords" [--tags a,b] [--limit 5] [dir]
+node <atlas> get ID [dir]
+node <atlas> check [dir]                                  # integrity + limits
+```
+
+`--id` optional: auto-generated as `{PREFIX}-{NNN}` from `--type`. The first ever node (graph seed) is allowed to have no `--conn`; every later node needs ≥ 1 edge.
+
+## Token discipline (IMPORTANT)
+
+**Never read `atlas/*.json` raw.** Always:
+
+1. `atlas query "<topic>"` → compact matches (id, type, tags, summary, +md flag).
+2. `atlas get ID` → full node + detail file.
+3. Walk `conn` edges via `atlas get` only if needed.
+
+The CLI reads the files internally and returns only what you asked for. On a 10k-node graph this keeps your context at the size of the answer, not the size of the memory.
+
+## Enforced limits
+
+| Limit | Value | Enforced by |
+|---|---|---|
+| summary | ≤ 140 chars | `record` + `check` |
+| node detail file | ≤ 200 lines | `record --file` + `check` |
+| nodes per shard | ≤ 300 | auto-split on `record`, checked |
+| conn | ≥ 1 edge (except seed) | `record` + `check` |
+| duplicate id / broken edge / stale tags | — | `check` |
+
+Tuning: `ATLAS_MAX_SHARD=500` overrides the shard size.
+
+## Node types
+
+| Type | Prefix | When |
+|---|---|---|
+| requirement | `REQ-` | A product requirement / user story |
+| feature | `FEAT-` | A feature or capability |
+| task | `TASK-` | Significant work completed |
+| bug | `BUG-` | Bug found or fixed |
+| decision | `DEC-` | Important architecture/product decision |
+| positive | `POS-` | What worked / good pattern |
+| negative | `NEG-` | What failed / wrong step |
+| edge | `EDGE-` | Edge case discovered |
+| pitfall | `PF-` | Recurring trap |
+
+## Status
+
+`active` (still relevant) · `done` / `fixed` (completed) · `open` (bug not fixed) · `archived` (no longer relevant; skip in startup scan)
+
+## Connection types
+
+`fixes` · `caused` · `led_to` · `relates` · `blocks` · `depends` · `contradicts` · `example_of` · `implements` · `satisfies`
+
+## Node shape (inside shards)
+
+```json
+{
+  "id": "BUG-001",
+  "type": "bug",
+  "status": "fixed",
+  "date": "2026-08-09",
+  "tags": ["seo", "router"],
+  "summary": "One sentence: essence and why it matters.",
+  "conn": [{ "id": "TASK-002", "type": "fixes" }]
+}
+```
+
+## Protocol
+
+### Before work
+1. Does `atlas/` exist? No → `atlas init` (or plugin scaffolds it automatically).
+2. `atlas query "<topic from the task>"` → read relevant nodes.
+3. Follow `conn` only if needed.
+
+### After significant work
+Record a node in the SAME change that did the work:
+1. `atlas record --type <type> --status <status> --tags a,b --summary "≤140 chars" --conn "ID:type,..."`.
+2. Add `--file nodes/{ID}.md` when detail exceeds the summary (≤ 200 lines).
+3. CLI keeps shards, tags_index, and auto-ID in sync. `atlas check` verifies.
+
+### PO behavior
+- Before proposing a feature or change: `atlas query` the topic. Do not re-propose what a `NEG-` or `DEC-` node already settled.
+- When status changes (e.g. requirement shipped): record a `TASK-` node with `--conn "REQ-001:implements"`, keep the chain readable.
+
+## Install
+
+```bash
+# scaffold the graph in any project
+node <atlas-owner>/skill/scripts/atlas.mjs init /path/to/project
+# verify integrity + limits
+node <atlas-owner>/skill/scripts/atlas.mjs check /path/to/project
+```
+
+`<atlas-owner>` = repo path (`~/Documents/Project/atlas-owner` locally) or the copied skill folder (`~/.config/opencode/skills/atlas-owner`). For convenience symlink to PATH: `ln -s <atlas-owner>/skill/scripts/atlas.mjs /usr/local/bin/atlas`.
+
+If the atlas-owner **plugin** is installed, `atlas/` scaffolds automatically on project load and `atlas/PROTOCOL.md` is injected into project instructions — no manual init needed.
+
+If the project has an existing legacy `memory/` graph, the plugin leaves it untouched — and skips PROTOCOL injection even if `atlas/` is also present.
+
+## Sharing / distribution
+
+The whole repo (`skill/` + `plugin/`) is portable and zero-dependency. Copy to another machine, or publish as a git repo / npm package. `node` ships with the runtime.
+
