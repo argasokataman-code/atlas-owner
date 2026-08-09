@@ -162,15 +162,16 @@ export default async ({ directory }) => {
     'tool.execute.after': async (input) => {
       if (hasLegacy || !existsSync(join(atlas, 'manifest.json'))) return
       const { tool, args } = input
-      if (tool !== 'edit' && tool !== 'write' && tool !== 'bash') return
-      const target = args?.filePath || args?.path || args?.command || ''
+      // Only file edits/writes leave work traces. Bash (queries, git status,
+      // npm view...) is noise — recording it pollutes the graph with
+      // #auto nodes (see PF-002 in the atlas-owner graph).
+      if (tool !== 'edit' && tool !== 'write') return
+      const target = args?.filePath || args?.path || ''
       if (!target) return
       const key = `${new Date().toISOString().slice(0, 16)}|${target}` // ~1/min bucket
       if (lastRecorded[key]) return
       lastRecorded[key] = true
-      const summary = tool === 'bash'
-        ? `auto: ran ${target.slice(0, 80)}`
-        : `auto: edited ${target}`
+      const summary = `auto: edited ${target}`
       // Anchor to an existing node so the graph stays connected; empty graph
       // (no id_map) falls through and the first node becomes the seed.
       let anchor = ''
