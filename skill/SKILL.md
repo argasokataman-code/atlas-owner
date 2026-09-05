@@ -13,10 +13,13 @@ Atlas is a persistent graph memory built for Product Owner behavior. Every fact 
 
 ```
 atlas/
-├── manifest.json         # small meta: active_shard, node_count, seed_id
+├── manifest.json         # meta: schema_version, active_shard, node_count, seed_id, next_seq, pruned_count, last_prune_at, path_features
 ├── index.{n}.json        # node shards, auto-split at 300 nodes each
 ├── id_map.json           # id -> shard (O(1) get, dup/conn checks)
 ├── tags_index.json       # tag -> [{id, shard}]
+├── words_index.json      # word -> [{id, shard}] (query candidate hint)
+├── symbol_index.json     # symbol -> [{id, shard}] (scan --symbols)
+├── features/<fitur>/*.md # per-feature node groupings (M6a)
 ├── nodes/{ID}.md         # optional per-node detail (max 200 lines)
 ├── PROTOCOL.md           # retrieval rules (injected into context by plugin)
 └── rules.md              # node/edge format rules
@@ -33,13 +36,23 @@ ATLAS=$(command -v atlas || echo "$HOME/.config/opencode/skills/atlas-owner/scri
 node "$ATLAS" init [dir]                                   # scaffold
 node "$ATLAS" record --id TASK-003 --type task --status done \
     --tags seo,router --summary "max 140 chars" \
-    --conn "BUG-001:fixes,DEC-002:led_to" [--file nodes/TASK-003.md] [dir]
-node "$ATLAS" query "keywords" [--tags a,b] [--limit 5] [dir]
+    --conn "BUG-001:fixes,DEC-002:led_to" [--file nodes/TASK-003.md] [--loc file:line] [--commit hash] [dir]
+node "$ATLAS" query "keywords" [--tags a,b] [--limit 5] [--compact] [--all] [--since N] [--feature F] [--features] [dir]
 node "$ATLAS" recent [--limit 10] [dir]                    # newest nodes
 node "$ATLAS" get ID [dir]
+node "$ATLAS" context <filepath> [dir]                     # infer feature from file, list nodes
+node "$ATLAS" feature <nama> --paths a,b,c [dir]           # map path-prefix -> feature
 node "$ATLAS" update ID --status archived [dir]            # change status/summary/tags
+node "$ATLAS" update|delete --filter "type=task&status=done&tags=auto" [--dry-run] [dir]  # bulk by filter
+node "$ATLAS" prune [--days N] [--dry-run] [--force] [dir] # archive old/done/auto noise
+node "$ATLAS" migrate [dir]                                # schema auto-migrate + backup
+node "$ATLAS" edit ID [dir]                                # open detail file in $EDITOR
+node "$ATLAS" cluster [dir]                                # group active nodes by topic
+node "$ATLAS" export --stats [dir]                         # dump graph / counts by type
+node "$ATLAS" verify [dir]                                 # check + dangling-conn integrity
 node "$ATLAS" stat [dir]                                   # one-line counts
-node "$ATLAS" rebuild [dir]                                # fix id_map/tags drift
+node "$ATLAS" scan [dir] [--symbols]                       # code-walk map (idempotent)
+node "$ATLAS" rebuild [dir]                                # fix id_map/tags/words drift
 node "$ATLAS" doctor                                       # version drift check
 node "$ATLAS" check [dir]                                  # integrity + limits
 ```
@@ -123,7 +136,7 @@ Tuning: `ATLAS_MAX_SHARD=500` overrides the shard size.
 
 ### Before work
 1. Does `atlas/` exist? No → `atlas init` (or plugin scaffolds it automatically).
-2. Project has `AGENTS.md`/`CLAUDE.md`? Run `atlas ingest` once — it turns rules/bans/env into knowledge nodes (`NEG`/`DEC`) so existing docs are searchable without re-reading.
+2. Project has `AGENTS.md`/`CLAUDE.md`? Run `atlas ingest` once — it turns rules/bans/env into knowledge nodes (`NEG`/`DEC`) and reads `docs/**/*.md` + root `*.md` so existing docs are searchable without re-reading.
 3. New/large project, no map yet? `atlas scan` to map repo structure (code-walk, not guesswork). Markdown docs get their heading into the node summary. Then `atlas query` the relevant paths.
 4. `atlas query "<topic from the task>"` → read relevant nodes.
 5. Any flow or insight unclear (business OR technical)? Ask the user before recording a node. Never guess a fact.

@@ -49,10 +49,13 @@ Installed into a project it creates:
 ```
 your-project/
 └── atlas/
-    ├── manifest.json         # active_shard, node_count, seed_id
+    ├── manifest.json         # schema_version, active_shard, node_count, seed_id, next_seq, path_features
     ├── index.{n}.json        # node shards (auto-split)
     ├── id_map.json           # id -> shard (O(1) get, dup/conn checks)
     ├── tags_index.json       # tag -> [{id, shard}]
+    ├── words_index.json      # word -> [{id, shard}] (query hint)
+    ├── symbol_index.json     # symbol -> [{id, shard}] (scan --symbols)
+    ├── features/<fitur>/*.md # per-feature node groupings
     ├── nodes/{ID}.md         # optional per-node detail
     ├── PROTOCOL.md           # always-in-context protocol
     └── rules.md
@@ -142,13 +145,22 @@ MCP tools: `atlas_query`, `atlas_get`, `atlas_recent`, `atlas_stat`, `atlas_scan
 ```bash
 alias atlas='node /abs/path/to/atlas-owner/skill/scripts/atlas.mjs'
 atlas init /path/to/project
-atlas record --id BUG-001 --type bug --status fixed --tags seo,router --summary "hreflang duplikat" --conn "DEC-003:fixes" /path/to/project
+atlas record --id BUG-001 --type bug --status fixed --tags seo,router --summary "hreflang duplikat" --conn "DEC-003:fixes" --loc file:line --commit abc1234 /path/to/project
 atlas query "hreflang" --limit 5 /path/to/project
 atlas recent /path/to/project
 atlas stat /path/to/project
 atlas get BUG-001 /path/to/project
+atlas context src/routes.js /path/to/project      # infer feature from file, list nodes
+atlas feature seo --paths src/routes,src/meta /path/to/project  # map path-prefix -> feature
 atlas update BUG-001 --status archived /path/to/project
-atlas scan /path/to/project            # map repo structure (code-walk, idempotent)
+atlas update --filter "type=task&status=done&tags=auto" --dry-run /path/to/project  # bulk
+atlas prune --days 30 --dry-run /path/to/project  # archive old/done/auto noise
+atlas migrate /path/to/project                    # schema auto-migrate + backup
+atlas edit BUG-001 /path/to/project               # open detail file in $EDITOR
+atlas cluster /path/to/project                    # group active nodes by topic
+atlas export --stats /path/to/project             # dump graph / counts by type
+atlas verify /path/to/project                     # check + dangling-conn integrity
+atlas scan /path/to/project --symbols             # map repo structure (code-walk, idempotent)
 atlas scan /path/to/project --target src --depth 3   # deeper map of one subtree
 atlas rebuild /path/to/project
 atlas check /path/to/project
@@ -159,17 +171,24 @@ atlas check /path/to/project
 | Command | What it does |
 |---|---|
 | `init` | scaffold `atlas/` (manifest, shards, indexes, PROTOCOL) |
-| `ingest` | read AGENTS.md/CLAUDE.md → knowledge nodes (rules→`NEG`, env→`DEC`) |
-| `record` | add a node (`--id` optional, auto `{PREFIX}-{NNN}`) |
-| `query` | search by keywords + `--tags` + `--limit` (default 5, max 20) |
+| `ingest` | read AGENTS.md/CLAUDE.md + `docs/**/*.md` + root `*.md` → knowledge nodes (rules→`NEG`, env→`DEC`) |
+| `record` | add a node (`--id` optional, auto `{PREFIX}-{NNN}`; `--file`, `--loc file:line`, `--commit hash`) |
+| `query` | search by keywords + `--tags` + `--limit` (default 5, max 20); `--compact`, `--all`, `--since N`, `--feature F`, `--features` |
 | `get ID` | show one node (plus `nodes/{ID}.md` if present) |
-| `update ID` | change `--status` / `--summary` / `--tags` |
-| `delete ID` | remove a node (`--force` strips incoming edges too) |
+| `context <file>` | infer feature from a file path, list its nodes (top 10) |
+| `feature <nama>` | map path-prefix → feature (`--paths a,b` or `--remove-path p`) |
+| `update ID`\|`--filter F` | change `--status` / `--summary` / `--tags` (bulk by filter, `--dry-run`) |
+| `delete ID`\|`--filter F` | remove a node (`--force` strips incoming edges too; `--dry-run`) |
+| `prune` | archive old/done/auto noise (`--days N` default 90, `--dry-run`, `--force`) |
+| `migrate` | run pending schema migrations (auto on load; v1→v5, backup `atlas-backup-*`) |
+| `edit ID` | open node detail file in `$EDITOR` (creates `nodes/{ID}.md` if absent) |
 | `recent` | newest nodes by timestamp (`--limit`, default 10) |
 | `stat` | one-line counts by type/status |
-| `scan` | code-walk the repo → feature/task nodes (`--target`, `--depth`; idempotent) |
-| `export` | dump full graph as JSON (backup / portability) |
-| `rebuild` | rebuild `id_map.json` + `tags_index.json` (fix drift) |
+| `scan` | code-walk the repo → feature/task nodes (`--target`, `--depth`, `--symbols`; idempotent) |
+| `cluster` | group active nodes by topic (count + first 5 ids) |
+| `export` | dump full graph as JSON (backup / portability; `--file`, `--stats` for counts) |
+| `rebuild` | rebuild `id_map.json` + `tags_index.json` + `words_index.json` (fix drift) |
+| `verify` | check + connector-integrity (dangling conn refs; exit 1 if any) |
 | `check` | integrity + limits gate |
 
 `--id` is optional — auto-generated as `{PREFIX}-{NNN}` from `--type`. First node (graph seed) may omit `--conn`; later nodes need ≥ 1 edge. IDs must match `{PREFIX}-{NNN}` (doubles as a path-traversal guard).

@@ -3,7 +3,8 @@
 //
 // Unlike the shell CLI (spawns node per call, ~50ms), this keeps one node
 // process alive and runs every command in-process (~1ms per call). Tools:
-// query, get, recent, stat, scan, record, update, check. Zero dependencies
+// query, get, recent, stat, scan, record, update, delete, ingest, export,
+// context, prune, check. Zero dependencies
 // (stdio JSON-RPC over node:child_process-free imports).
 //
 // Install: add to opencode.json (or any MCP client) as a stdio server:
@@ -50,6 +51,8 @@ async function handle(method, params, id) {
         { name: 'atlas_delete', description: 'remove node', inputSchema: { type: 'object', properties: { id: { type: 'string' }, force: { type: 'boolean' }, dir: { type: 'string' } } } },
         { name: 'atlas_ingest', description: 'read AGENTS.md/docs into knowledge nodes', inputSchema: { type: 'object', properties: { dir: { type: 'string' } } } },
         { name: 'atlas_export', description: 'dump full graph as JSON', inputSchema: { type: 'object', properties: { dir: { type: 'string' } } } },
+        { name: 'atlas_context', description: 'preflight: infer feature from a path, list its nodes (open first)', inputSchema: { type: 'object', properties: { path: { type: 'string' }, dir: { type: 'string' } } } },
+        { name: 'atlas_prune', description: 'archive old done task nodes', inputSchema: { type: 'object', properties: { days: { type: 'number' }, dryRun: { type: 'boolean' }, force: { type: 'boolean' }, dir: { type: 'string' } } } },
         { name: 'atlas_check', description: 'verify integrity', inputSchema: { type: 'object', properties: { dir: { type: 'string' } } } },
       ]
       return reply(id, { tools })
@@ -80,6 +83,11 @@ async function handle(method, params, id) {
       }
       if (name === 'atlas_ingest') a.push('ingest', dir)
       if (name === 'atlas_export') a.push('export', dir)
+      if (name === 'atlas_context') {
+        if (!args.path) return reply(id, { content: [{ type: 'text', text: 'FAIL: atlas_context requires path' }], isError: true })
+        a.push('context', args.path, dir)
+      }
+      if (name === 'atlas_prune') a.push('prune', ...(args.days ? ['--days', String(args.days)] : []), ...(args.dryRun ? ['--dry-run'] : []), ...(args.force ? ['--force'] : []), dir)
       if (name === 'atlas_check') a.push('check', dir)
       const res = await runCmd(a)
       return reply(id, { content: [{ type: 'text', text: res.output }], isError: res.code !== 0 })
