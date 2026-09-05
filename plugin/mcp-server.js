@@ -98,7 +98,7 @@ async function handle(method, params, id) {
   }
 }
 
-process.stdin.on('data', (chunk) => {
+process.stdin.on('data', async (chunk) => {
   buf += chunk
   let nl
   while ((nl = buf.indexOf('\n')) !== -1) {
@@ -106,6 +106,6 @@ process.stdin.on('data', (chunk) => {
     buf = buf.slice(nl + 1)
     if (!line) continue
     const msg = JSON.parse(line)
-    if (msg.id !== undefined) handle(msg.method, msg.params, msg.id)
+    if (msg.id !== undefined) await handle(msg.method, msg.params, msg.id).catch(e => console.error('atlas MCP error', e))
   }
 })

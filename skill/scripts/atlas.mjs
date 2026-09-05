@@ -49,6 +49,7 @@ const MIGRATIONS = [
     // Additive only — no data touched, no folders pre-created (that's M6/M9).
     up: async (dir, manifest) => {
       await mkdir(join(dir, 'nodes'), { recursive: true })
+      manifest.path_features = manifest.path_features || {}
       manifest.schema_version = 2
       manifest.migrated_at = today()
     },
@@ -335,6 +336,7 @@ async function applyMigrations(dir, m) {
   }
   m.schema_version = SCHEMA_VERSION
   if (!m.migrated_at) m.migrated_at = today()
+  delete m.version // legacy field, cleaned after migration (idempotent)
   await saveManifest(dir, m)
   return { from, to: cur, applied: true }
 }
@@ -817,12 +819,31 @@ async function featureCmd(dir, opts) {
         console.log(`removed ${p} (was ${name})`)
       }
     } else {
+      const added = []
       for (const p of opts.paths.split(',').map((s) => s.trim()).filter(Boolean)) {
         const existing = pf[p]
         if (existing && existing !== name) { fail(`FAIL: path ${p} already mapped to ${existing}`); return }
         pf[p] = name
+        added.push(p)
         console.log(`mapped ${p} -> ${name}`)
       }
+      // Backfill feature files for nodes recorded before this mapping existed.
+      // ponytail: linear scan over all nodes, only writes for loc matching the
+      // newly-mapped paths; appendFeatureLine is idempotent per id.
+      const { nodes: all } = await allNodes(dir, man)
+      let backfilled = 0
+      for (const n of all) {
+        if (!n.loc) continue
+        const path = n.loc.split(':')[0]
+        const matched = added.some((p) => {
+          const pr = p.replace(/[/\\]+$/, '')
+          return path === pr || path.startsWith(pr + '/') || path.startsWith(pr + '\\')
+        })
+        if (!matched) continue
+        await writeFeatureFiles(dir, name, n)
+        backfilled++
+      }
+      if (backfilled) console.log(`backfilled ${backfilled} node(s) into features/${name}/`)
     }
     await saveManifest(dir, man)
   })
@@ -1095,7 +1116,7 @@ async function recent(dir, opts) {
   const { nodes, corrupt } = await allNodes(dir, manifest)
   if (corrupt.length) console.error(`WARN: skipping corrupt shard file(s): ${corrupt.join(', ')}. Run: atlas check`)
   const stamp = (n) => `${n.date || ''} ${n.time || ''}`
-  const newest = [...nodes].sort((a, b) => stamp(b).localeCompare(stamp(a))).slice(0, limit)
+  const newest = nodes.filter((n) => n.status !== 'archived').sort((a, b) => stamp(b).localeCompare(stamp(a))).slice(0, limit)
   if (!newest.length) { console.log('(no nodes)'); return }
   for (const n of newest) printNode(dir, n)
   console.log(`(${newest.length}/${manifest.node_count} nodes)`)
@@ -1614,6 +1635,13 @@ async function deleteNode(dir, opts) {
         if (dirty) await writeFile(join(dir, `index.${n}.json`), JSON.stringify(s, null, 2) + '\n')
       }
     }
+    // ponytail: warn-only. delete --force intentionally orphans any node whose
+    // only conn(s) pointed at the deleted node(s). Not a bug — user asked for
+    // it. Just flag so they can re-link manually (check will fail until then).
+    const orphaned = all.filter((n) => !targetSet.has(n.id) && (n.conn || []).length > 0 && (n.conn || []).every((c) => targetSet.has(c.id)))
+    if (orphaned.length) {
+      console.log(`WARN: delete --force left ${orphaned.length} orphan node(s) (0 conn, not seed): ${orphaned.map((n) => n.id).join(', ')}. Re-link or archive manually; atlas check will fail.`)
+    }
     // Remove from shards.
     for (let n = 0; n <= man.active_shard; n++) {
       const s = await loadShard(dir, n)
@@ -1675,9 +1703,13 @@ async function prune(dir, opts) {
       if (n.type !== 'task' || n.status !== 'done') continue
       if (!isLeaf(n)) continue
       if (isSeed(n) && !opts.force) continue
-      if (!isOld(n)) continue
-      aCount++
-      if (isAutoOnly(n)) bCount++
+      // M4: two independent criteria — (a) old task-done-leaf, (b) auto-only
+      // done-leaf with NO age requirement. Either one archives.
+      const critA = isOld(n)
+      const critB = isAutoOnly(n)
+      if (!critA && !critB) continue
+      if (critA) aCount++
+      if (critB) bCount++
       targets.push(n)
     }
 
@@ -1705,6 +1737,12 @@ async function prune(dir, opts) {
       for (const x of s.nodes) if (ids.includes(x.id)) x.status = 'archived'
       await writeFile(join(dir, `index.${shardNum}.json`), JSON.stringify(s, null, 2) + '\n')
     }
+    // ponytail: keep words_index in sync so query doesn't surface archived nodes
+    const wordsIndex = await loadWordsIndex(dir)
+    if (wordsIndex && Object.keys(wordsIndex).length > 0) {
+      for (const t of targets) removeNodeFromWords(wordsIndex, t.id)
+      await saveWordsIndex(dir, wordsIndex)
+    }
     man.pruned_count = (man.pruned_count || 0) + targets.length
     man.last_prune_at = today()
     await saveManifest(dir, man)
@@ -1728,7 +1766,7 @@ async function edit(dir, opts) {
   if (!existsSync(filePath)) {
     await writeFile(filePath, `# ${id}\n\n${node.summary}\n`)
   }
-  const editor = process.env.EDITOR || 'vi'
+  const editor = process.env.EDITOR || (existsSync('/usr/bin/vi') ? 'vi' : 'nano')
   const r = spawnSync(editor, [filePath], { stdio: 'inherit' })
   if (r.status !== 0) { fail(`FAIL: editor exited with status ${r.status}`); return }
   const text = await readFile(filePath, 'utf8')
