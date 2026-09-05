@@ -32,7 +32,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 // Single source of truth for the CLI version. Keep in sync with
 // package.json — the preversion script updates it on `npm version`.
-const VERSION = '0.7.5'
+const VERSION = '0.8.0'
 
 // Data-schema version, separate from the package VERSION. Bump when the
 // atlas/ JSON structure changes; MIGRATIONS carry the upgrade steps.
