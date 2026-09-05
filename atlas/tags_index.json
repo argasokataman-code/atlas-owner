@@ -1,47 +1,5 @@
 {
-  "ingest": [
-    {
-      "id": "FEAT-001",
-      "shard": 0
-    },
-    {
-      "id": "FEAT-002",
-      "shard": 0
-    },
-    {
-      "id": "FEAT-003",
-      "shard": 0
-    },
-    {
-      "id": "FEAT-004",
-      "shard": 0
-    },
-    {
-      "id": "FEAT-005",
-      "shard": 0
-    },
-    {
-      "id": "DEC-001",
-      "shard": 0
-    },
-    {
-      "id": "DEC-002",
-      "shard": 0
-    },
-    {
-      "id": "FEAT-006",
-      "shard": 0
-    }
-  ],
-  "scan": [
-    {
-      "id": "FEAT-007",
-      "shard": 0
-    },
-    {
-      "id": "FEAT-008",
-      "shard": 0
-    },
+  "auto": [
     {
       "id": "TASK-001",
       "shard": 0
@@ -55,10 +13,6 @@
       "shard": 0
     },
     {
-      "id": "FEAT-010",
-      "shard": 0
-    },
-    {
       "id": "TASK-004",
       "shard": 0
     },
@@ -67,129 +21,183 @@
       "shard": 0
     },
     {
-      "id": "FEAT-011",
-      "shard": 0
-    },
-    {
-      "id": "FEAT-012",
-      "shard": 0
-    },
-    {
       "id": "TASK-006",
       "shard": 0
     },
     {
-      "id": "BUG-001",
-      "shard": 0
-    },
-    {
-      "id": "DEC-003",
-      "shard": 0
-    },
-    {
       "id": "TASK-007",
       "shard": 0
     },
     {
-      "id": "PF-002",
-      "shard": 0
-    }
-  ],
-  "dedup": [
-    {
-      "id": "BUG-001",
-      "shard": 0
-    }
-  ],
-  "ops": [
-    {
-      "id": "DEC-003",
-      "shard": 0
-    }
-  ],
-  "eval": [
-    {
-      "id": "TASK-007",
-      "shard": 0
-    }
-  ],
-  "setup": [
-    {
-      "id": "BUG-002",
+      "id": "TASK-008",
       "shard": 0
     },
     {
-      "id": "BUG-003",
-      "shard": 0
-    }
-  ],
-  "mcp": [
-    {
-      "id": "BUG-002",
-      "shard": 0
-    }
-  ],
-  "path": [
-    {
-      "id": "BUG-002",
+      "id": "TASK-009",
       "shard": 0
     },
     {
-      "id": "BUG-003",
+      "id": "TASK-010",
       "shard": 0
     },
     {
-      "id": "DEC-004",
-      "shard": 0
-    }
-  ],
-  "doctor": [
-    {
-      "id": "FEAT-013",
-      "shard": 0
-    }
-  ],
-  "versions": [
-    {
-      "id": "FEAT-013",
-      "shard": 0
-    }
-  ],
-  "skill": [
-    {
-      "id": "BUG-003",
+      "id": "TASK-011",
       "shard": 0
     },
     {
-      "id": "DEC-004",
+      "id": "TASK-012",
       "shard": 0
     },
     {
-      "id": "PF-001",
+      "id": "TASK-013",
+      "shard": 0
+    },
+    {
+      "id": "TASK-014",
+      "shard": 0
+    },
+    {
+      "id": "TASK-015",
+      "shard": 0
+    },
+    {
+      "id": "TASK-016",
+      "shard": 0
+    },
+    {
+      "id": "TASK-017",
+      "shard": 0
+    },
+    {
+      "id": "TASK-018",
+      "shard": 0
+    },
+    {
+      "id": "TASK-019",
+      "shard": 0
+    },
+    {
+      "id": "TASK-020",
+      "shard": 0
+    },
+    {
+      "id": "TASK-021",
+      "shard": 0
+    },
+    {
+      "id": "TASK-022",
+      "shard": 0
+    },
+    {
+      "id": "TASK-023",
+      "shard": 0
+    },
+    {
+      "id": "TASK-024",
+      "shard": 0
+    },
+    {
+      "id": "TASK-025",
+      "shard": 0
+    },
+    {
+      "id": "TASK-026",
+      "shard": 0
+    },
+    {
+      "id": "TASK-027",
+      "shard": 0
+    },
+    {
+      "id": "TASK-028",
+      "shard": 0
+    },
+    {
+      "id": "TASK-029",
+      "shard": 0
+    },
+    {
+      "id": "TASK-030",
+      "shard": 0
+    },
+    {
+      "id": "TASK-031",
+      "shard": 0
+    },
+    {
+      "id": "TASK-032",
+      "shard": 0
+    },
+    {
+      "id": "TASK-033",
+      "shard": 0
+    },
+    {
+      "id": "TASK-034",
+      "shard": 0
+    },
+    {
+      "id": "TASK-035",
+      "shard": 0
+    },
+    {
+      "id": "TASK-036",
+      "shard": 0
+    },
+    {
+      "id": "TASK-037",
+      "shard": 0
+    },
+    {
+      "id": "TASK-038",
+      "shard": 0
+    },
+    {
+      "id": "TASK-039",
+      "shard": 0
+    },
+    {
+      "id": "TASK-040",
+      "shard": 0
+    },
+    {
+      "id": "TASK-041",
+      "shard": 0
+    },
+    {
+      "id": "TASK-042",
+      "shard": 0
+    },
+    {
+      "id": "TASK-043",
+      "shard": 0
+    },
+    {
+      "id": "TASK-044",
+      "shard": 0
+    },
+    {
+      "id": "TASK-045",
+      "shard": 0
+    },
+    {
+      "id": "TASK-046",
+      "shard": 0
+    },
+    {
+      "id": "TASK-047",
       "shard": 0
     }
   ],
-  "deploy": [
+  "milestone": [
     {
-      "id": "DEC-004",
+      "id": "MILE-001",
       "shard": 0
     }
   ],
-  "version": [
+  "v2": [
     {
-      "id": "PF-001",
-      "shard": 0
-    }
-  ],
-  "auto": [
-    {
-      "id": "PF-002",
-      "shard": 0
-    }
-  ],
-  "noise": [
-    {
-      "id": "PF-002",
+      "id": "MILE-001",
       "shard": 0
     }
   ]

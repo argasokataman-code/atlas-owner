@@ -2,358 +2,104 @@
   "shard": 0,
   "nodes": [
     {
-      "id": "FEAT-001",
-      "type": "feature",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:26:17",
-      "tags": [
-        "ingest"
-      ],
-      "summary": "AGENTS.md — AGENTS.md — Atlas Owner",
-      "conn": []
-    },
-    {
-      "id": "FEAT-002",
-      "type": "feature",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:26:17",
-      "tags": [
-        "ingest"
-      ],
-      "summary": "AGENTS.md — What this repo is",
-      "conn": [
-        {
-          "id": "FEAT-001",
-          "type": "relates"
-        }
-      ]
-    },
-    {
-      "id": "FEAT-003",
-      "type": "feature",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:26:17",
-      "tags": [
-        "ingest"
-      ],
-      "summary": "AGENTS.md — Hard rules (do not break)",
-      "conn": [
-        {
-          "id": "FEAT-001",
-          "type": "relates"
-        }
-      ]
-    },
-    {
-      "id": "FEAT-004",
-      "type": "feature",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:26:17",
-      "tags": [
-        "ingest"
-      ],
-      "summary": "AGENTS.md — Verify before committing",
-      "conn": [
-        {
-          "id": "FEAT-001",
-          "type": "relates"
-        }
-      ]
-    },
-    {
-      "id": "FEAT-005",
-      "type": "feature",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:26:17",
-      "tags": [
-        "ingest"
-      ],
-      "summary": "AGENTS.md — Changing behavior",
-      "conn": [
-        {
-          "id": "FEAT-001",
-          "type": "relates"
-        }
-      ]
-    },
-    {
-      "id": "DEC-001",
-      "type": "decision",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:26:17",
-      "tags": [
-        "ingest"
-      ],
-      "summary": "AGENTS.md: CLI behavior change → update `skill/SKILL.md`, `README.md`, and the duplicated PROTOCOL templates together. Three places, one fea",
-      "conn": [
-        {
-          "id": "FEAT-001",
-          "type": "relates"
-        }
-      ]
-    },
-    {
-      "id": "DEC-002",
-      "type": "decision",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:26:17",
-      "tags": [
-        "ingest"
-      ],
-      "summary": "AGENTS.md: New node/conn type → update `TYPES` / `CONN_TYPES` in `atlas.mjs`, plus the PROTOCOL/RULES text in both files, plus `skill/SKILL.",
-      "conn": [
-        {
-          "id": "FEAT-001",
-          "type": "relates"
-        }
-      ]
-    },
-    {
-      "id": "FEAT-006",
-      "type": "feature",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:26:17",
-      "tags": [
-        "ingest"
-      ],
-      "summary": "AGENTS.md — Commit style",
-      "conn": [
-        {
-          "id": "FEAT-001",
-          "type": "relates"
-        }
-      ]
-    },
-    {
-      "id": "FEAT-007",
-      "type": "feature",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:27:03",
-      "tags": [
-        "scan"
-      ],
-      "summary": "plugin",
-      "conn": [
-        {
-          "id": "FEAT-001",
-          "type": "relates"
-        }
-      ]
-    },
-    {
-      "id": "FEAT-008",
-      "type": "feature",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:27:03",
-      "tags": [
-        "scan"
-      ],
-      "summary": "skill",
-      "conn": [
-        {
-          "id": "FEAT-001",
-          "type": "relates"
-        }
-      ]
-    },
-    {
       "id": "TASK-001",
       "type": "task",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:27:03",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "09:20:48",
       "tags": [
-        "scan"
+        "auto"
       ],
-      "summary": ".gitignore",
-      "conn": [
-        {
-          "id": "FEAT-001",
-          "type": "relates"
-        }
-      ]
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/feedback-user/PLAN-FIXING-FEEDBACK.md",
+      "conn": []
     },
     {
       "id": "TASK-002",
       "type": "task",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:27:03",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "09:25:37",
       "tags": [
-        "scan"
+        "auto"
       ],
-      "summary": "LICENSE",
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/feedback-user/PLAN-FIXING-FEEDBACK.md",
       "conn": [
         {
-          "id": "FEAT-001",
-          "type": "relates"
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
         }
       ]
     },
     {
       "id": "TASK-003",
       "type": "task",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:27:03",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "09:26:01",
       "tags": [
-        "scan"
+        "auto"
       ],
-      "summary": "package.json",
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/feedback-user/PLAN-FIXING-FEEDBACK.md",
       "conn": [
         {
-          "id": "FEAT-001",
-          "type": "relates"
-        }
-      ]
-    },
-    {
-      "id": "FEAT-010",
-      "type": "feature",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:27:03",
-      "tags": [
-        "scan"
-      ],
-      "summary": "README.md — Atlas Owner — Product Owner Graph Memory",
-      "conn": [
-        {
-          "id": "FEAT-001",
-          "type": "relates"
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
         }
       ]
     },
     {
       "id": "TASK-004",
       "type": "task",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:27:56",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "09:27:48",
       "tags": [
-        "scan"
+        "auto"
       ],
-      "summary": "plugin/index.js",
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/feedback-user/PLAN-FIXING-FEEDBACK.md",
       "conn": [
         {
-          "id": "FEAT-007",
-          "type": "relates"
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
         }
       ]
     },
     {
       "id": "TASK-005",
       "type": "task",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:27:56",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "09:28:02",
       "tags": [
-        "scan"
+        "auto"
       ],
-      "summary": "plugin/mcp-server.js",
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/feedback-user/PLAN-FIXING-FEEDBACK.md",
       "conn": [
         {
-          "id": "FEAT-007",
-          "type": "relates"
-        }
-      ]
-    },
-    {
-      "id": "FEAT-011",
-      "type": "feature",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:27:56",
-      "tags": [
-        "scan"
-      ],
-      "summary": "skill/scripts",
-      "conn": [
-        {
-          "id": "FEAT-007",
-          "type": "relates"
-        }
-      ]
-    },
-    {
-      "id": "FEAT-012",
-      "type": "feature",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:27:56",
-      "tags": [
-        "scan"
-      ],
-      "summary": "skill/SKILL.md — Atlas Owner — Product Owner Graph Memory",
-      "conn": [
-        {
-          "id": "FEAT-007",
-          "type": "relates"
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
         }
       ]
     },
     {
       "id": "TASK-006",
       "type": "task",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:31:08",
-      "tags": [
-        "scan"
-      ],
-      "summary": "skill/scripts/atlas.mjs",
-      "conn": [
-        {
-          "id": "FEAT-007",
-          "type": "relates"
-        }
-      ]
-    },
-    {
-      "id": "BUG-001",
-      "type": "bug",
       "status": "done",
-      "date": "2026-08-09",
-      "time": "20:31:50",
+      "date": "2026-09-05",
+      "time": "09:29:58",
       "tags": [
-        "scan",
-        "dedup"
+        "auto"
       ],
-      "summary": "scan dupe ingest nodes: reconcile cuma #scan, fix: match all nodes",
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/feedback-user/PLAN-FIXING-FEEDBACK.md",
       "conn": [
         {
-          "id": "TASK-004",
-          "type": "fixes",
-          "raw": "TASK-004:fixes"
-        }
-      ]
-    },
-    {
-      "id": "DEC-003",
-      "type": "decision",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "20:31:50",
-      "tags": [
-        "scan",
-        "ops"
-      ],
-      "summary": "repo nested (skill/scripts/) butuh --depth 3, depth 2 skip file dalam-dalam",
-      "conn": [
-        {
-          "id": "FEAT-008",
+          "id": "TASK-001",
           "type": "relates",
-          "raw": "FEAT-008:relates"
+          "raw": "TASK-001:relates"
         }
       ]
     },
@@ -361,136 +107,756 @@
       "id": "TASK-007",
       "type": "task",
       "status": "done",
-      "date": "2026-08-09",
-      "time": "20:31:50",
+      "date": "2026-09-05",
+      "time": "09:30:36",
       "tags": [
-        "eval",
-        "scan"
+        "auto"
       ],
-      "summary": "audit kelengkapan scan repo atlas: semua 9 file ter-map setelah depth 3",
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
       "conn": [
         {
-          "id": "TASK-006",
+          "id": "TASK-001",
           "type": "relates",
-          "raw": "TASK-006:relates"
+          "raw": "TASK-001:relates"
         }
       ]
     },
     {
-      "id": "BUG-002",
-      "type": "bug",
+      "id": "TASK-008",
+      "type": "task",
       "status": "done",
-      "date": "2026-08-09",
-      "time": "21:02:04",
+      "date": "2026-09-05",
+      "time": "09:31:35",
       "tags": [
-        "setup",
-        "mcp",
-        "path"
+        "auto"
       ],
-      "summary": "atlas setup dr skill copy nulis path plugin/mcp ke skills/ gak exist (../../ salah dari copy). Fix: findPkgRoot() walk up package.json",
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/feedback-user/PLAN-FIXING-FEEDBACK.md",
       "conn": [
         {
-          "id": "TASK-004",
-          "type": "fixes",
-          "raw": "TASK-004:fixes"
-        }
-      ]
-    },
-    {
-      "id": "FEAT-013",
-      "type": "feature",
-      "status": "done",
-      "date": "2026-08-09",
-      "time": "21:02:04",
-      "tags": [
-        "doctor",
-        "versions"
-      ],
-      "summary": "atlas doctor: cek versi CLI/global/skill/MCP vs npm latest + perintah fix",
-      "conn": [
-        {
-          "id": "BUG-002",
-          "type": "led_to",
-          "raw": "BUG-002:led_to"
-        }
-      ]
-    },
-    {
-      "id": "BUG-003",
-      "type": "bug",
-      "status": "done",
-      "date": "2026-08-09",
-      "time": "21:10:08",
-      "tags": [
-        "skill",
-        "path",
-        "setup"
-      ],
-      "summary": "skill copy mati: SKILL.md hardcode <repo>/skill/scripts/atlas.mjs tapi copy=scripts/atlas.mjs. Fix: resolve command -v atlas || copy || repo",
-      "conn": [
-        {
-          "id": "BUG-002",
+          "id": "TASK-001",
           "type": "relates",
-          "raw": "BUG-002:relates"
+          "raw": "TASK-001:relates"
         }
       ]
     },
     {
-      "id": "DEC-004",
+      "id": "TASK-009",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "09:35:43",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-010",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "09:36:16",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-011",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "09:39:28",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-012",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "09:45:07",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-013",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "09:47:02",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-014",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "09:51:17",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-015",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "09:52:02",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-016",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "09:52:51",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/plugin/index.js",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-017",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:01:50",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-018",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:02:00",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-019",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:03:22",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-020",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:04:07",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-021",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:06:02",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-022",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:07:15",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-023",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:08:09",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-024",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:14:29",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-025",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:15:03",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-026",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:16:00",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-027",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:22:34",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/plugin/index.js",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-028",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:24:03",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/plugin/index.js",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-029",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:25:27",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-030",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:28:54",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-031",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:29:03",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-032",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:30:00",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-033",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:38:32",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/plugin/index.js",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-034",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:38:59",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/plugin/mcp-server.js",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-035",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:39:04",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/plugin/mcp-server.js",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-036",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:40:12",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/plugin/mcp-server.js",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-037",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:47:06",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-038",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:47:20",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/plugin/index.js",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-039",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:47:32",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/atlas/PROTOCOL.md",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-040",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:48:23",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/SKILL.md",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-041",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:48:53",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/README.md",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-042",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:49:02",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/README.md",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-043",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:51:06",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/feedback-user/PLAN-FIXING-FEEDBACK.md",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "MILE-001",
       "type": "decision",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "21:10:08",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "10:53:11",
       "tags": [
-        "skill",
-        "deploy",
-        "path"
+        "milestone",
+        "v2"
       ],
-      "summary": "ATLAS: path atlas.mjs harus resolve otomatis (3 fallback) bukan hardcode. SKILL.md + doctor + setup wajib ikut",
+      "summary": "v2 feature-complete M1-M10 committed: parser, bulk, prune, migrate, perf, symbols, auto-record, features, cluster, MCP",
       "conn": [
         {
-          "id": "BUG-003",
-          "type": "led_to",
-          "raw": "BUG-003:led_to"
-        }
-      ]
-    },
-    {
-      "id": "PF-001",
-      "type": "pitfall",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "21:10:08",
-      "tags": [
-        "skill",
-        "version"
-      ],
-      "summary": "skill copy gak punya package.json -> --version gagal. Fix: VERSION embed di atlas.mjs + version script sync",
-      "conn": [
-        {
-          "id": "BUG-003",
-          "type": "fixes",
-          "raw": "BUG-003:fixes"
-        }
-      ]
-    },
-    {
-      "id": "PF-002",
-      "type": "pitfall",
-      "status": "active",
-      "date": "2026-08-09",
-      "time": "21:15:34",
-      "tags": [
-        "scan",
-        "auto",
-        "noise"
-      ],
-      "summary": "scan depth-2 + auto-record bash di repo besar (TDrive) = 103 node junk #scan/#auto. TDrive: hapus junk, record manual per topik",
-      "conn": [
-        {
-          "id": "FEAT-013",
+          "id": "TASK-001",
           "type": "relates",
-          "raw": "FEAT-013:relates"
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-044",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "11:01:34",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/plugin/mcp-server.js",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-045",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "11:02:01",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/plugin/mcp-server.js",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-046",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "11:02:39",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
+        }
+      ]
+    },
+    {
+      "id": "TASK-047",
+      "type": "task",
+      "status": "done",
+      "date": "2026-09-05",
+      "time": "11:04:50",
+      "tags": [
+        "auto"
+      ],
+      "summary": "auto: edited /Users/vanviakingali/Project/atlas-owner/skill/scripts/atlas.mjs",
+      "conn": [
+        {
+          "id": "TASK-001",
+          "type": "relates",
+          "raw": "TASK-001:relates"
         }
       ]
     }
